@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Informe de Trade Spend Zuppa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --paper:#F5F1E8; --panel:#FCFAF5; --panel-2:#EFE9DC; --rule:#E2D9C7; --rule-2:#CFC4AE;
+  --ink:#1D1A15; --ink-2:#554E43; --ink-3:#877F71;
+  --accent:#1F4E79; --accent-soft:#DCE6F0; --amber:#A8660C; --amber-soft:#F6E7CC;
+  --good:#2E7D32; --good-soft:#DDEEDB; --bad:#B8322A; --bad-soft:#F6DCD8; --warn:#B7791F;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --s0:#9C9486;
+  --grid:rgba(29,26,21,.08);
+  --f-display:"Fraunces", Georgia, "Times New Roman", serif;
+  --f-body:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#15130F; --panel:#1D1A15; --panel-2:#26221B; --rule:#322D24; --rule-2:#473F32;
+    --ink:#F1ECE2; --ink-2:#C2B9A8; --ink-3:#8E8676;
+    --accent:#86B4E3; --accent-soft:#1E2E3F; --amber:#E0A84A; --amber-soft:#3A2C14;
+    --good:#6CC070; --good-soft:#1B3020; --bad:#EE7B72; --bad-soft:#3D1D1A; --warn:#E0A84A;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767; --s0:#7D766A;
+    --grid:rgba(241,236,226,.08);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#15130F; --panel:#1D1A15; --panel-2:#26221B; --rule:#322D24; --rule-2:#473F32;
+  --ink:#F1ECE2; --ink-2:#C2B9A8; --ink-3:#8E8676;
+  --accent:#86B4E3; --accent-soft:#1E2E3F; --amber:#E0A84A; --amber-soft:#3A2C14;
+  --good:#6CC070; --good-soft:#1B3020; --bad:#EE7B72; --bad-soft:#3D1D1A; --warn:#E0A84A;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767; --s0:#7D766A;
+  --grid:rgba(241,236,226,.08);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--paper)}
+body{margin:0;color:var(--ink);font:14px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1320px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:0 64px}
+h1,h2,h3{font-family:var(--f-display);font-weight:650;text-wrap:balance;margin:0;letter-spacing:-.01em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--rule)}
+.brand{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;padding-top:18px}
+.brand h1{font-size:clamp(22px,2.6vw,30px);line-height:1.1}
+.brand .code{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--amber);background:var(--amber-soft);padding:2px 8px;border-radius:999px;margin-right:8px;vertical-align:middle;letter-spacing:.04em}
+.brand .sub{color:var(--ink-3);font-size:12px;font-family:var(--f-mono)}
+.filters{display:flex;flex-wrap:wrap;gap:8px 12px;padding:12px 0 10px;align-items:end}
+.f{display:flex;flex-direction:column;gap:2px;min-width:0}
+.f label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600}
+.f select,.f input{background:var(--panel);border:1px solid var(--rule-2);border-radius:6px;padding:6px 28px 6px 9px;height:34px;max-width:100%}
+.f select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 14px) 15px,calc(100% - 9px) 15px;background-size:5px 5px;background-repeat:no-repeat}
+.f.range{flex-direction:row;align-items:end;gap:6px}
+.f.range span{padding-bottom:7px;color:var(--ink-3)}
+.btn{border:1px solid var(--rule-2);background:var(--panel);border-radius:6px;height:34px;padding:0 12px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:600}
+.btn.ghost{background:transparent}
+.btn.sm{height:28px;padding:0 9px;font-size:12.5px}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-bottom:-1px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:transparent;padding:10px 14px;cursor:pointer;color:var(--ink-2);font-weight:600;font-size:13.5px;border-bottom:2px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--amber)}
+.tab .req{font-family:var(--f-mono);font-size:10px;color:var(--ink-3);margin-left:4px;font-weight:500}
+
+/* sections */
+main{padding-top:22px}
+.view{display:flex;flex-direction:column;gap:22px}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+.sec-h h2{font-size:21px}
+.sec-h p{margin:0;color:var(--ink-2);max-width:70ch}
+.hint{color:var(--ink-3);font-size:12.5px}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+.panel h3{font-size:16px;margin-bottom:2px}
+.panel .ph{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px}
+.chart{position:relative;height:280px}
+.chart.tall{height:340px}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:0;border:1px solid var(--rule);border-radius:10px;background:var(--panel);overflow:hidden}
+.kpi{padding:14px 16px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 -1px -1px 0}
+.kpi .lb{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600}
+.kpi .v{font-family:var(--f-display);font-size:28px;font-weight:650;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .d{font-family:var(--f-mono);font-size:12px;margin-top:4px;color:var(--ink-3)}
+.up{color:var(--bad)} .down{color:var(--good)} .flat{color:var(--ink-3)}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+
+/* audit strip */
+.audit{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px}
+.audit a{display:block;text-decoration:none;color:inherit;border:1px dashed var(--rule-2);border-radius:8px;padding:10px 12px;background:transparent}
+.audit a:hover{border-style:solid;border-color:var(--amber)}
+.audit b{display:block;font-size:13px}
+.audit span{font-size:12px;color:var(--ink-3)}
+.audit .ok{font-family:var(--f-mono);font-size:11px;color:var(--good);font-weight:600}
+
+.reading{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.reading li{padding-left:18px;position:relative;max-width:95ch}
+.reading li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--amber)}
+.reading li.g::before{background:var(--good)} .reading li.b::before{background:var(--bad)}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--panel);max-height:640px;overflow-y:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--rule)}
+th{position:sticky;top:0;background:var(--panel-2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);font-weight:600;z-index:1}
+th.l,td.l{text-align:left}
+td{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:12.5px}
+td.l{font-family:var(--f-body);font-size:13px}
+td.wr{white-space:normal;min-width:220px}
+tr.grp td{background:var(--panel-2);font-weight:600}
+tr.tot td{font-weight:700;border-top:2px solid var(--rule-2)}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:var(--accent-soft)}
+th.sort{cursor:pointer} th.sort:hover{color:var(--ink)}
+.sticky1{position:sticky;left:0;background:var(--panel);z-index:1}
+th.sticky1{z-index:2;background:var(--panel-2)}
+tr.grp .sticky1{background:var(--panel-2)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--rule-2);color:var(--ink-2);background:var(--panel)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;font-family:var(--f-body)}
+.pill.cmq{background:var(--accent-soft);color:var(--accent)}
+.pill.zup{background:var(--amber-soft);color:var(--amber)}
+.pill.mix{background:linear-gradient(90deg,var(--accent-soft) 50%,var(--amber-soft) 50%);color:var(--ink)}
+.pill.na{background:var(--panel-2);color:var(--ink-3)}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.wait{background:var(--amber-soft);color:var(--amber)}
+.bar-in{display:inline-block;height:6px;border-radius:3px;background:var(--s1);vertical-align:middle;margin-left:6px;opacity:.75}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
+.seg-toggle{display:inline-flex;border:1px solid var(--rule-2);border-radius:7px;overflow:hidden}
+.seg-toggle button{border:0;background:var(--panel);padding:6px 11px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.seg-toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.note{font-size:12.5px;color:var(--ink-2);background:var(--panel-2);border-radius:8px;padding:10px 12px}
+.note b{color:var(--ink)}
+.empty{padding:28px;text-align:center;color:var(--ink-3)}
+
+/* drawer */
+.drawer{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end;background:rgba(20,17,12,.35)}
+.drawer .in{width:min(720px,100%);height:100%;background:var(--paper);overflow-y:auto;padding:20px clamp(16px,3vw,28px) 40px;padding-top:calc(20px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:16px;border-left:1px solid var(--rule)}
+.drawer .x{align-self:flex-end}
+.drawer .in > *{flex:none}
+.drawer .tw{max-height:none}
+
+/* SMART */
+.smart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px;align-items:start}
+form.smart{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+form.smart .full{grid-column:1/-1}
+form.smart .f textarea,form.smart .f input,form.smart .f select{width:100%}
+form.smart textarea{background:var(--panel);border:1px solid var(--rule-2);border-radius:6px;padding:7px 9px;min-height:58px;resize:vertical}
+.letter{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:4px;background:var(--ink);color:var(--paper);font-family:var(--f-mono);font-size:11px;font-weight:700;margin-right:6px}
+.plans{display:flex;flex-direction:column;gap:12px}
+.plan{border:1px solid var(--rule);border-radius:10px;background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.plan .hd{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.plan h4{margin:0;font-family:var(--f-display);font-size:16px;font-weight:650}
+.plan dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font-size:13px}
+.plan dt{font-family:var(--f-mono);font-weight:700;color:var(--amber)}
+.plan dd{margin:0;color:var(--ink-2)}
+.plan .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.plan .act{display:flex;gap:6px;flex-wrap:wrap}
+.banner{font-size:12.5px;border-radius:8px;padding:9px 12px;background:var(--amber-soft);color:var(--ink)}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:8px;font-size:13px;z-index:60}
+.loading{padding:80px 0;text-align:center;color:var(--ink-3);font-family:var(--f-mono)}
+@media (max-width:640px){
+  .top{position:static}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi{padding:12px}
+  form.smart{grid-template-columns:1fr}
+  .kpi .v{font-size:23px}
+  .chart{height:240px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap" style="padding-block:0">
+    <div class="brand">
+      <div>
+        <h1><span class="code">2.4.1.1</span>Informe de Trade Spend</h1>
+      </div>
+      <div class="sub" id="gen">Distribuidora Zuppa · Galaxia 2026</div>
+    </div>
+    <div class="filters" id="filters" hidden>
+      <div class="f range"><div class="f"><label for="f-m0">Desde</label><select id="f-m0"></select></div><span>→</span><div class="f"><label for="f-m1">Hasta</label><select id="f-m1"></select></div></div>
+      <div class="f"><label for="f-neg">Negocio</label><select id="f-neg"></select></div>
+      <div class="f"><label for="f-seg">Segmento</label><select id="f-seg"></select></div>
+      <div class="f"><label for="f-canal">Canal</label><select id="f-canal"></select></div>
+      <div class="f"><label for="f-cat">Tipo de acción</label><select id="f-cat"></select></div>
+      <button class="btn ghost" id="f-reset" type="button">Limpiar filtros</button>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs" hidden>
+      <button class="tab" role="tab" data-v="resumen" aria-selected="true">Resumen</button>
+      <button class="tab" role="tab" data-v="canal">Canal y segmento</button>
+      <button class="tab" role="tab" data-v="acciones">Acciones</button>
+      <button class="tab" role="tab" data-v="cmq">CMQ vs Distribuidor</button>
+      <button class="tab" role="tab" data-v="clientes">Ranking clientes</button>
+      <button class="tab" role="tab" data-v="planes">Planes SMART</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="loading" id="loading">Cargando datos…</div>
+
+  <!-- RESUMEN -->
+  <section class="view" id="v-resumen" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <div class="ph"><h3>Lectura del período</h3><span class="hint" id="read-hint"></span></div>
+      <ul class="reading" id="reading"></ul>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><div><h3>Gasto mensual por tipo de acción</h3><div class="hint">TS en pesos corrientes</div></div></div><div class="legend" id="lg-cat"></div><div class="chart"><canvas id="c-ts"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>$TS / $FACT evolutivo</h3><div class="hint">Gasto sobre facturación neta</div></div></div><div class="chart"><canvas id="c-tsfact"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>$TS / HL evolutivo</h3><div class="hint">Pesos de TS por hectolitro vendido</div></div></div><div class="chart"><canvas id="c-tshl"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>Declarado vs reconocido por CMQ</h3><div class="hint">Nominal (declarado Zuppa) vs real (acreditado CMQ)</div></div></div><div class="chart"><canvas id="c-decl-mini"></canvas></div></div>
+    </div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h2>Detalle mes a mes</h2><button class="btn sm" id="cp-mensual" type="button">Copiar para Excel</button></div>
+      <div class="tw"><table id="t-mensual"></table></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>Qué pide el punto 2.4.1.1 y dónde está</h3></div>
+      <div class="audit">
+        <a href="#resumen" data-go="resumen"><span class="ok">✓ Resumen</span><b>Gasto real, nominal y $TS/$FACT evolutivo</b><span>Mes a mes para todos los negocios</span></a>
+        <a href="#canal" data-go="canal"><span class="ok">✓ Canal y segmento</span><b>$TS/HL y $TS/$FACT por canal hasta segmento</b><span>Super Premium · Premium · Core+ · Core · Value · FAM · RECO · TOP</span></a>
+        <a href="#cmq" data-go="cmq"><span class="ok">✓ CMQ vs Distribuidor</span><b>Reconocidas por CMQ y pagadas por el distribuidor</b><span>Declarado vs reconocido y descentralizadas</span></a>
+        <a href="#acciones" data-go="acciones"><span class="ok">✓ Acciones</span><b>Centralizadas, descentralizadas, bonificaciones y negociaciones</b><span>Rendimiento de cada acción</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CANAL Y SEGMENTO -->
+  <section class="view" id="v-canal" hidden>
+    <div class="sec-h"><h2>Canal y segmento</h2><p>Apertura evolutiva por canal hasta nivel segmento. Las celdas se sombrean según cuánto se acercan al valor más alto de su fila.</p></div>
+    <div class="toolbar">
+      <div class="f"><label>Indicador</label><div class="seg-toggle" id="cs-metric"><button data-m="tshl" aria-pressed="true">$TS/HL</button><button data-m="tsfact" aria-pressed="false">$TS/$FACT</button><button data-m="ts" aria-pressed="false">TS $</button><button data-m="hl" aria-pressed="false">HL</button></div></div>
+      <div class="f"><label>Filas</label><div class="seg-toggle" id="cs-rows"><button data-r="canal" aria-pressed="true">Canal › segmento</button><button data-r="seg" aria-pressed="false">Segmento › canal</button></div></div>
+      <button class="btn sm" id="cp-canal" type="button">Copiar para Excel</button>
+    </div>
+    <div class="tw"><table id="t-canal"></table></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><div><h3 id="cs-ch1-t">Por segmento</h3><div class="hint">Todos los canales del filtro</div></div></div><div class="legend" id="lg-seg"></div><div class="chart tall"><canvas id="c-seg"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3 id="cs-ch2-t">Por canal</h3><div class="hint">Todos los segmentos del filtro</div></div></div><div class="legend" id="lg-canal"></div><div class="chart tall"><canvas id="c-canal"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- ACCIONES -->
+  <section class="view" id="v-acciones" hidden>
+    <div class="sec-h"><h2>Acciones</h2><p>Centralizadas, descentralizadas, combos, negociaciones y bonificaciones manuales. El volumen y la facturación "impactados" son los del cliente y producto donde se aplicó la acción.</p></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3>Mix del gasto por tipo de acción</h3><span class="hint">% del TS de cada mes</span></div><div class="legend" id="lg-cat2"></div><div class="chart"><canvas id="c-mix"></canvas></div></div>
+      <div class="panel"><div class="ph"><h3>Por tipo de acción</h3><span class="hint">Período filtrado</span></div><div class="tw" style="max-height:none"><table id="t-cat"></table></div></div>
+    </div>
+    <div class="toolbar">
+      <div class="f" style="flex:1 1 240px"><label for="a-q">Buscar acción o código</label><input id="a-q" type="search" placeholder="Ej: RECO, 5561, CORONA"></div>
+      <div class="f"><label for="a-sort">Ordenar por</label><select id="a-sort"><option value="ts">Mayor gasto</option><option value="tshl">Mayor $TS/HL</option><option value="tsfact">Mayor $TS/$FACT</option><option value="cl">Más clientes</option></select></div>
+      <div class="f"><label for="a-n">Mostrar</label><select id="a-n"><option>25</option><option selected>50</option><option>100</option><option value="9999">Todas</option></select></div>
+      <button class="btn sm" id="cp-acc" type="button">Copiar para Excel</button>
+    </div>
+    <div class="hint" id="acc-count"></div>
+    <div class="tw"><table id="t-acc"></table></div>
+  </section>
+
+  <!-- CMQ -->
+  <section class="view" id="v-cmq" hidden>
+    <div class="sec-h"><h2>CMQ vs Distribuidor</h2><p>Qué declaró Zuppa, qué reconoció y acreditó CMQ, y qué acciones descentralizadas pagó cada parte.</p></div>
+    <div class="kpis" id="kpis-cmq"></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><div><h3>Declarado vs reconocido</h3><div class="hint">Hoja DECLARADOS · filtra por negocio y período</div></div></div><div class="legend"><span><i class="dot" style="background:var(--s0)"></i>Declarado Zuppa (nominal)</span><span><i class="dot" style="background:var(--s1)"></i>Reconocido CMQ (real)</span></div><div class="chart"><canvas id="c-decl"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>Descentralizadas: quién pagó</h3><div class="hint">Gasto ejecutado según la base, repartido por la planilla</div></div></div><div class="legend"><span><i class="dot" style="background:var(--s1)"></i>Reconocido CMQ</span><span><i class="dot" style="background:var(--s4)"></i>Pagado por Zuppa</span><span><i class="dot" style="background:var(--s0)"></i>Sin registro en planilla</span></div><div class="chart"><canvas id="c-desc"></canvas></div></div>
+    </div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h3>Declarado vs reconocido por cluster</h3><div class="seg-toggle" id="dc-view"><button data-d="rec" aria-pressed="true">Reconocido</button><button data-d="dif" aria-pressed="false">No reconocido</button><button data-d="dec" aria-pressed="false">Declarado</button></div></div>
+      <div class="tw"><table id="t-decl"></table></div>
+    </div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h3>Acciones descentralizadas</h3><div class="toolbar"><div class="f"><label for="d-cargo">A cargo de</label><select id="d-cargo"><option value="ALL">Todas</option><option value="CMQ">Reconocidas por CMQ</option><option value="ZUPPA">Pagadas por Zuppa</option><option value="MIXTA">Compartidas CMQ/Zuppa</option><option value="NR">Sin registro en planilla</option></select></div><button class="btn sm" id="cp-desc" type="button">Copiar para Excel</button></div></div>
+      <div class="tw"><table id="t-desc"></table></div>
+      <p class="hint" style="margin-top:8px">Enero–abril: se toma la marca "APROBADAS POR CMQ" del resumen dinámico. Mayo en adelante: la columna A CARGO de la planilla (cruce por código de acción). En las compartidas se usa el % CMQ / % DISTRI de la planilla; si no está cargado, 50/50.</p>
+    </div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h3>Planilla de descentralizadas: plan vs ejecutado</h3><span class="hint">TS planificado en la planilla vs TS real de la base para el mismo código</span></div>
+      <div class="tw"><table id="t-plan"></table></div>
+    </div>
+  </section>
+
+  <!-- CLIENTES -->
+  <section class="view" id="v-clientes" hidden>
+    <div class="sec-h"><h2>Ranking de clientes</h2><p>Posición de cada cliente según el gasto del período y cómo se movió mes a mes. Tocá una fila para ver el detalle.</p></div>
+    <div class="toolbar">
+      <div class="f" style="flex:1 1 220px"><label for="c-q">Buscar cliente</label><input id="c-q" type="search" placeholder="Nombre o código"></div>
+      <div class="f"><label for="c-sort">Ordenar por</label><select id="c-sort"><option value="ts">Mayor gasto TS</option><option value="tsfact">Mayor $TS/$FACT</option><option value="tshl">Mayor $TS/HL</option><option value="fact">Mayor facturación</option></select></div>
+      <div class="f"><label for="c-min">Facturación mínima</label><select id="c-min"><option value="0">Sin mínimo</option><option value="1000000">$ 1 M</option><option value="5000000" selected>$ 5 M</option><option value="20000000">$ 20 M</option></select></div>
+      <div class="f"><label for="c-n">Mostrar</label><select id="c-n"><option>25</option><option selected>50</option><option>100</option><option value="99999">Todos</option></select></div>
+      <div class="f"><label>Celdas por mes</label><div class="seg-toggle" id="c-cell"><button data-c="ts" aria-pressed="true">TS $</button><button data-c="tsfact" aria-pressed="false">$TS/$FACT</button><button data-c="rank" aria-pressed="false">Posición</button></div></div>
+      <button class="btn sm" id="cp-cli" type="button">Copiar para Excel</button>
+    </div>
+    <div class="hint" id="cli-count"></div>
+    <div class="tw"><table id="t-cli"></table></div>
+  </section>
+
+  <!-- PLANES -->
+  <section class="view" id="v-planes" hidden>
+    <div class="sec-h"><h2>Planes de acción SMART</h2><p>Cada oportunidad detectada se convierte en un plan específico, medible, alcanzable, relevante y con fecha. Queda registrado para mostrar en la auditoría cómo se gestiona el TS mes a mes.</p></div>
+    <div class="banner" id="plan-mode" hidden></div>
+    <div class="smart-grid">
+      <div class="panel">
+        <div class="ph"><h3 id="pf-title">Nuevo plan</h3></div>
+        <form class="smart" id="pf" autocomplete="off">
+          <input type="hidden" id="p-id">
+          <div class="f full"><label for="p-titulo">Oportunidad detectada</label><input id="p-titulo" required placeholder="Ej: $TS/HL de RECO en K+T subió 35% en 3 meses"></div>
+          <div class="f full"><label for="p-esp"><span class="letter">S</span>Específico: qué vamos a hacer</label><textarea id="p-esp" required placeholder="Acción concreta, dónde y con quién"></textarea></div>
+          <div class="f"><label for="p-ind"><span class="letter">M</span>Indicador</label><select id="p-ind"><option value="tsfact">$TS/$FACT</option><option value="tshl">$TS/HL</option><option value="ts">TS $ mensual</option><option value="rec">% reconocido CMQ</option><option value="otro">Otro</option></select></div>
+          <div class="f"><label for="p-base">Valor actual</label><div style="display:flex;gap:6px"><input id="p-base" placeholder="Ej: 21,5 %" style="flex:1"><button class="btn sm" type="button" id="p-take" title="Usar el valor del último mes con los filtros del plan">Tomar</button></div></div>
+          <div class="f"><label for="p-meta">Meta</label><input id="p-meta" required placeholder="Ej: 19,0 %"></div>
+          <div class="f"><label for="p-fecha"><span class="letter">T</span>Fecha límite</label><input id="p-fecha" type="date" required></div>
+          <div class="f full"><label for="p-alc"><span class="letter">A</span>Alcanzable: por qué es posible</label><textarea id="p-alc" placeholder="Recursos, antecedentes, capacidad del equipo"></textarea></div>
+          <div class="f full"><label for="p-rel"><span class="letter">R</span>Relevante: impacto en el negocio</label><textarea id="p-rel" placeholder="Qué mejora en rentabilidad, volumen o reconocimiento"></textarea></div>
+          <div class="f"><label for="p-neg">Negocio</label><select id="p-neg"></select></div>
+          <div class="f"><label for="p-seg">Segmento</label><select id="p-seg"></select></div>
+          <div class="f"><label for="p-canal">Canal</label><select id="p-canal"></select></div>
+          <div class="f"><label for="p-resp">Responsable</label><input id="p-resp" required placeholder="Nombre"></div>
+          <div class="f"><label for="p-estado">Estado</label><select id="p-estado"><option>Pendiente</option><option>En curso</option><option>Cumplido</option><option>No cumplido</option></select></div>
+          <div class="f full"><label for="p-seg-txt">Seguimiento</label><textarea id="p-seg-txt" placeholder="Avances, resultado obtenido, próximos pasos"></textarea></div>
+          <div class="full" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="submit" id="p-save">Guardar plan</button><button class="btn" type="button" id="p-cancel" hidden>Cancelar edición</button></div>
+        </form>
+      </div>
+      <div>
+        <div class="toolbar" style="margin-bottom:10px;justify-content:space-between">
+          <div class="f"><label for="pl-fil">Ver</label><select id="pl-fil"><option value="ALL">Todos</option><option>Pendiente</option><option>En curso</option><option value="VENC">Vencidos</option><option>Cumplido</option><option>No cumplido</option></select></div>
+          <button class="btn sm" id="cp-plan" type="button">Copiar para Excel</button>
+        </div>
+        <div class="plans" id="plans"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="drawer" id="drawer" hidden><div class="in" id="drawer-in"></div></div>
+
+<script>
+(function(){
+'use strict';
+let D, S, CH = {}, CUBE, M, SEG, NEGS, CATS, CANS;
+const NEG_LBL = {CZA:'Cervezas',NABS:'NABs',MKTP:'Marketplace',AGUAS:'Aguas',VINO:'Vino',ADY:'Adyacencias',OTROS:'Otros'};
+const CAT_LBL = ['Centralizadas','Descentralizadas','Combo fijo','Negociaciones','Bonif. manuales'];
+const CAT_COL = ['--s1','--s2','--s3','--s4','--s5'];
+const CAN_COL = ['--s1','--s2','--s3','--s4','--s0'];
+const SEG_COL = {SPREM:'--s1',PREM:'--s2',COREP:'--s3',CORE:'--s4',VALUE:'--s5',FAM:'--s6',RECO:'--s7',TOP:'--s8'};
+const MES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const $ = s => document.querySelector(s);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf = (d) => new Intl.NumberFormat('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const NF0 = nf(0), NF1 = nf(1), NF2 = nf(2);
+const money = v => v == null || !isFinite(v) ? '—' : '$ ' + NF0.format(v);
+const mill = v => v == null || !isFinite(v) ? '—' : '$ ' + NF1.format(v/1e6) + ' M';
+const pct = (v,d=2) => v == null || !isFinite(v) ? '—' : nf(d).format(v*100) + ' %';
+const hlf = v => v == null || !isFinite(v) ? '—' : NF1.format(v);
+const mlab = m => { const [y,mm] = m.split('/'); return MES_ES[+mm-1] + ' ' + y.slice(2); };
+const div = (a,b) => b ? a/b : null;
+const METRIC = {
+  ts:{lbl:'TS $', f:mill, v:o=>o.ts},
+  hl:{lbl:'HL', f:hlf, v:o=>o.hl},
+  fact:{lbl:'Facturación', f:mill, v:o=>o.fact},
+  tshl:{lbl:'$TS/HL', f:money, v:o=>div(o.ts,o.hl)},
+  tsfact:{lbl:'$TS/$FACT', f:v=>pct(v), v:o=>div(o.ts,o.fact)},
+};
+
+function toast(t){ const el=document.createElement('div'); el.className='toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
+function copyText(txt){
+  const done=()=>toast('Copiado. Pegalo en Excel o Sheets.');
+  try{ navigator.clipboard.writeText(txt).then(done,()=>fallback()); }catch(e){ fallback(); }
+  function fallback(){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){toast('Seleccioná y copiá manualmente');} ta.remove(); }
+}
+function tableTSV(sel){ return [...document.querySelectorAll(sel+' tr')].map(tr=>[...tr.children].map(td=>td.innerText.replace(/\s+/g,' ').trim()).join('\t')).join('\n'); }
+
+/* ---------- load ---------- */
+async function boot(){
+  try{
+    if (window.TS_DATA) D = window.TS_DATA;
+    else { const r = await fetch('data.json',{cache:'no-store'}); if(!r.ok) throw new Error(r.status); D = await r.json(); }
+  }catch(e){ $('#loading').textContent = 'No se pudo cargar data.json. Corré "Actualizar tablero" desde el Sheet.'; return; }
+  M = D.meta.meses; SEG = D.dims.segmentos; NEGS = D.dims.negocios; CATS = D.dims.categorias; CANS = D.dims.canales;
+  $('#gen').textContent = 'Distribuidora Zuppa · Galaxia 2026 · datos al ' + D.meta.generado + ' · TS: ' + D.meta.tsCol;
+  buildCube(); initFilters(); initTabs(); initControls(); Plans.init();
+  $('#loading').hidden = true; $('#filters').hidden = false; $('#tabs').hidden = false;
+  const h = location.hash.replace('#','');
+  show(['resumen','canal','acciones','cmq','clientes','planes'].includes(h) ? h : 'resumen');
+  const mq = matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener && mq.addEventListener('change', ()=>render());
+  new MutationObserver(()=>render()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+}
+
+/* cube: ts[cat][m][canal][seg], hl/fact[m][canal][seg] */
+function buildCube(){
+  const nm=M.length, nc=CANS.length, ns=SEG.length, nk=CATS.length;
+  const idx=(m,c,s)=> (m*nc + c)*ns + s;
+  const ts = Array.from({length:nk},()=>new Float64Array(nm*nc*ns));
+  const hl = new Float64Array(nm*nc*ns), fact = new Float64Array(nm*nc*ns);
+  const clCan = D.clientes.map(c=>c[2]);
+  for (const [ci,mi,si,k,v] of D.ts) ts[k][idx(mi,clCan[ci],si)] += v;
+  for (const [ci,mi,si,h,f] of D.vta){ const i=idx(mi,clCan[ci],si); hl[i]+=h; fact[i]+=f; }
+  CUBE = {ts,hl,fact,idx,nc,ns,nk,clCan};
+}
+function segOk(si,st=S){ const s=SEG[si]; return (st.neg==='ALL'||s[1]===st.neg) && (st.seg==='ALL'||s[0]===st.seg); }
+function canOk(c,st=S){ return st.canal==='ALL' || CANS[c]===st.canal; }
+function catOk(k,st=S){ return st.cat==='ALL' || CATS[k]===st.cat; }
+/* total for month mi with optional overrides */
+function tot(mi, o={}){
+  const st = Object.assign({}, S, o); let ts=0,hl=0,fact=0; const byCat=new Array(CUBE.nk).fill(0);
+  for (let c=0;c<CUBE.nc;c++){ if(!canOk(c,st)) continue;
+    for (let s=0;s<CUBE.ns;s++){ if(!segOk(s,st)) continue; const i=CUBE.idx(mi,c,s);
+      hl+=CUBE.hl[i]; fact+=CUBE.fact[i];
+      for (let k=0;k<CUBE.nk;k++){ const v=CUBE.ts[k][i]; if(catOk(k,st)){ ts+=v; } byCat[k]+=v; } } }
+  return {ts,hl,fact,byCat};
+}
+const range = () => { const a=[]; for(let i=S.m0;i<=S.m1;i++) a.push(i); return a; };
+function sumRange(o={}){ const r={ts:0,hl:0,fact:0}; for(const m of range()){ const t=tot(m,o); r.ts+=t.ts; r.hl+=t.hl; r.fact+=t.fact; } return r; }
+
+/* ---------- filters ---------- */
+function opt(v,l,sel){ return `<option value="${esc(v)}"${sel?' selected':''}>${esc(l)}</option>`; }
+function initFilters(){
+  S = {m0:0, m1:M.length-1, neg:'ALL', seg:'ALL', canal:'ALL', cat:'ALL', tab:'resumen'};
+  $('#f-m0').innerHTML = M.map((m,i)=>opt(i,mlab(m),i===0)).join('');
+  $('#f-m1').innerHTML = M.map((m,i)=>opt(i,mlab(m),i===M.length-1)).join('');
+  $('#f-neg').innerHTML = opt('ALL','Todos') + NEGS.map(n=>opt(n,NEG_LBL[n]||n)).join('');
+  $('#f-canal').innerHTML = opt('ALL','Todos') + CANS.map(c=>opt(c,c==='OTROS'?'Otros':c)).join('');
+  $('#f-cat').innerHTML = opt('ALL','Todas') + CATS.map((c,k)=>opt(c,CAT_LBL[k])).join('');
+  fillSeg('#f-seg', 'ALL', 'ALL');
+  const on = (id,key,num) => $(id).addEventListener('change', e=>{ S[key] = num? +e.target.value : e.target.value;
+    if(key==='m0' && S.m0>S.m1){ S.m1=S.m0; $('#f-m1').value=S.m1; }
+    if(key==='m1' && S.m1<S.m0){ S.m0=S.m1; $('#f-m0').value=S.m0; }
+    if(key==='neg'){ S.seg='ALL'; fillSeg('#f-seg', S.neg, 'ALL'); }
+    render(); });
+  on('#f-m0','m0',1); on('#f-m1','m1',1); on('#f-neg','neg'); on('#f-seg','seg'); on('#f-canal','canal'); on('#f-cat','cat');
+  $('#f-reset').addEventListener('click', ()=>{ Object.assign(S,{m0:0,m1:M.length-1,neg:'ALL',seg:'ALL',canal:'ALL',cat:'ALL'});
+    $('#f-m0').value=0; $('#f-m1').value=M.length-1; ['#f-neg','#f-canal','#f-cat'].forEach(s=>$(s).value='ALL'); fillSeg('#f-seg','ALL','ALL'); render(); });
+}
+function fillSeg(sel, neg, cur){
+  const list = SEG.filter(s=> neg==='ALL' ? true : s[1]===neg);
+  $(sel).innerHTML = opt('ALL','Todos') + list.map(s=>opt(s[0], (neg==='ALL' && s[1]!==s[0] ? (NEG_LBL[s[1]]+' · ') : '') + s[2], s[0]===cur)).join('');
+}
+function initTabs(){
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>show(b.dataset.v)));
+  document.querySelectorAll('[data-go]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault(); show(a.dataset.go); scrollTo({top:0});}));
+}
+function show(v){
+  S.tab = v; document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
+  document.querySelectorAll('.view').forEach(s=>s.hidden = s.id !== 'v-'+v);
+  try{ history.replaceState(null,'','#'+v); }catch(e){}
+  render();
+}
+function render(){ if(!S) return; ({resumen:rResumen, canal:rCanal, acciones:rAcciones, cmq:rCmq, clientes:rClientes, planes:()=>Plans.render()})[S.tab](); }
+
+/* ---------- charts ---------- */
+function baseOpts(fmtY, extra={}){
+  const ink2=css('--ink-2'), grid=css('--grid');
+  return Object.assign({responsive:true, maintainAspectRatio:false, animation:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{legend:{display:false}, tooltip:{backgroundColor:css('--ink'), titleColor:css('--paper'), bodyColor:css('--paper'), padding:10, boxPadding:4,
+      titleFont:{family:'Public Sans',weight:'600'}, bodyFont:{family:'JetBrains Mono',size:11.5},
+      callbacks:{label:c=>' '+c.dataset.label+': '+(c.raw==null?'—':fmtY(c.raw))}}},
+    scales:{x:{grid:{display:false}, ticks:{color:ink2, font:{family:'JetBrains Mono',size:11}}, border:{color:css('--rule-2')}},
+            y:{grid:{color:grid}, border:{display:false}, ticks:{color:ink2, font:{family:'JetBrains Mono',size:11}, callback:v=>fmtY(v,true)}, beginAtZero:true}}}, extra);
+}
+function draw(id, cfg){ if(CH[id]) CH[id].destroy(); const el=document.getElementById(id); if(!el||!window.Chart) return; CH[id]=new Chart(el, cfg); }
+const yM = (v)=> '$ '+NF0.format(v/1e6)+' M';
+const yP = (v,t)=> nf(t?0:2).format(v*100)+' %';
+const yH = (v)=> '$ '+NF0.format(v);
+function legend(el, items){ $(el).innerHTML = items.map(([l,c])=>`<span><i class="dot" style="background:var(${c})"></i>${esc(l)}</span>`).join(''); }
+function lineDS(label, data, colVar, opts={}){ const c=css(colVar); return Object.assign({label, data, borderColor:c, backgroundColor:c, borderWidth:2, pointRadius:3.5, pointHoverRadius:5, pointBackgroundColor:c, pointBorderColor:css('--panel'), pointBorderWidth:1.5, tension:.25, spanGaps:true}, opts); }
+function barDS(label, data, colVar, opts={}){ const c=css(colVar); return Object.assign({label, data, backgroundColor:c, borderColor:css('--panel'), borderWidth:{top:2}, borderRadius:{topLeft:3,topRight:3}, borderSkipped:'bottom', maxBarThickness:46}, opts); }
+
+/* ---------- RESUMEN ---------- */
+function delta(cur, prev, kind){
+  if(prev==null||cur==null||!isFinite(prev)||!isFinite(cur)||prev===0) return '<span class="flat">sin mes previo</span>';
+  const d = kind==='pp' ? (cur-prev)*100 : (cur/prev-1)*100;
+  const cls = Math.abs(d)<0.05 ? 'flat' : (d>0?'up':'down');
+  const arrow = d>0?'▲':(d<0?'▼':'•');
+  return `<span class="${cls}">${arrow} ${NF1.format(Math.abs(d))}${kind==='pp'?' pp':' %'}</span> vs ${mlab(M[S.m1-1]||M[0])}`;
+}
+function rResumen(){
+  const ms = range(), rows = ms.map(m=>({m, ...tot(m)}));
+  const last = rows[rows.length-1], prev = S.m1>0 ? tot(S.m1-1) : null, per = sumRange();
+  const dec = declByMonth();
+  const lastDec = [...ms].reverse().find(m=>dec[M[m]]);
+  const dk = lastDec!=null ? dec[M[lastDec]] : null;
+  $('#kpis').innerHTML = [
+    ['TS del período', mill(per.ts), `${ms.length} ${ms.length===1?'mes':'meses'} · ${mlab(M[S.m0])} a ${mlab(M[S.m1])}`],
+    ['TS ' + mlab(M[S.m1]), mill(last.ts), delta(last.ts, prev&&prev.ts)],
+    ['$TS/$FACT ' + mlab(M[S.m1]), pct(div(last.ts,last.fact)), delta(div(last.ts,last.fact), prev&&div(prev.ts,prev.fact), 'pp')],
+    ['$TS/HL ' + mlab(M[S.m1]), money(div(last.ts,last.hl)), delta(div(last.ts,last.hl), prev&&div(prev.ts,prev.hl))],
+    ['% reconocido CMQ', dk? pct(div(dk.rec,dk.dec),1) : '—', dk? `${mlab(M[lastDec])} · no reconocido ${mill(dk.dec-dk.rec)}` : 'Sin DECLARADOS en el período'],
+  ].map(([l,v,d])=>`<div class="kpi"><div class="lb">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+
+  const labels = ms.map(m=>mlab(M[m]));
+  const cats = CATS.map((c,k)=>k).filter(k=>catOk(k));
+  legend('#lg-cat', cats.map(k=>[CAT_LBL[k], CAT_COL[k]]));
+  draw('c-ts', {type:'bar', data:{labels, datasets: cats.map(k=>barDS(CAT_LBL[k], rows.map(r=>{ const t=tot(r.m,{cat:CATS[k]}); return t.ts; }), CAT_COL[k], {stack:'a'}))},
+    options: baseOpts(yM, {scales:Object.assign(baseOpts(yM).scales,{x:Object.assign(baseOpts(yM).scales.x,{stacked:true}), y:Object.assign(baseOpts(yM).scales.y,{stacked:true})})})});
+  draw('c-tsfact', {type:'line', data:{labels, datasets:[lineDS('$TS/$FACT', rows.map(r=>div(r.ts,r.fact)), '--s1', {fill:{target:'origin'}, backgroundColor:hexA(css('--s1'),.10)})]}, options: baseOpts(yP)});
+  draw('c-tshl', {type:'line', data:{labels, datasets:[lineDS('$TS/HL', rows.map(r=>div(r.ts,r.hl)), '--s2', {fill:{target:'origin'}, backgroundColor:hexA(css('--s2'),.10)})]}, options: baseOpts(yH)});
+  draw('c-decl-mini', declChartCfg(ms));
+
+  // tabla mensual
+  let h = `<thead><tr><th class="l">Mes</th><th>TS $</th><th>Var. TS</th><th>HL</th><th>Facturación</th><th>$TS/HL</th><th>$TS/$FACT</th>${CATS.map((c,k)=>`<th>${CAT_LBL[k]}</th>`).join('')}<th>Declarado</th><th>Reconocido CMQ</th><th>% Rec.</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{ const p = i>0 ? rows[i-1] : (r.m>0 ? tot(r.m-1) : null); const dd = dec[M[r.m]];
+    const vv = p && p.ts ? (r.ts/p.ts-1) : null;
+    h += `<tr><td class="l">${mlab(M[r.m])}</td><td>${money(r.ts)}</td><td class="${vv>0?'up':'down'}">${vv==null?'—':(vv>0?'▲ ':'▼ ')+NF1.format(Math.abs(vv*100))+' %'}</td><td>${hlf(r.hl)}</td><td>${money(r.fact)}</td><td>${money(div(r.ts,r.hl))}</td><td>${pct(div(r.ts,r.fact))}</td>${r.byCat.map((v,k)=>`<td>${catOk(k)?money(tot(r.m,{cat:CATS[k]}).ts):'—'}</td>`).join('')}<td>${dd?money(dd.dec):'<span class="hint">sin carga</span>'}</td><td>${dd?money(dd.rec):'—'}</td><td>${dd?pct(div(dd.rec,dd.dec),1):'—'}</td></tr>`; });
+  h += `<tr class="tot"><td class="l">Período</td><td>${money(per.ts)}</td><td></td><td>${hlf(per.hl)}</td><td>${money(per.fact)}</td><td>${money(div(per.ts,per.hl))}</td><td>${pct(div(per.ts,per.fact))}</td>${CATS.map((c,k)=>`<td>${catOk(k)?money(sumRange({cat:c}).ts):'—'}</td>`).join('')}<td></td><td></td><td></td></tr></tbody>`;
+  $('#t-mensual').innerHTML = h;
+  reading(rows, dec);
+}
+function hexA(hex,a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(x=>x+x).join(''):h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+
+function reading(rows, dec){
+  const out=[]; const f=rows[0], l=rows[rows.length-1];
+  $('#read-hint').textContent = `${mlab(M[S.m0])} → ${mlab(M[S.m1])} · con los filtros actuales`;
+  if(rows.length>1){
+    const a=div(f.ts,f.fact), b=div(l.ts,l.fact);
+    if(a!=null&&b!=null) out.push([b>a?'b':'g', `El $TS/$FACT pasó de <b>${pct(a)}</b> en ${mlab(M[f.m])} a <b>${pct(b)}</b> en ${mlab(M[l.m])} (${b>a?'+':''}${NF1.format((b-a)*100)} pp). ${b>a?'Cada peso facturado lleva más inversión que al inicio del período.':'La inversión por peso facturado bajó.'}`]);
+    const h1=div(f.ts,f.hl), h2=div(l.ts,l.hl);
+    if(h1&&h2) out.push([h2>h1?'b':'g', `El $TS/HL ${h2>h1?'subió':'bajó'} ${NF0.format(Math.abs(h2/h1-1)*100)} %: de <b>${money(h1)}</b> a <b>${money(h2)}</b> por hectolitro, con ${l.hl<f.hl?'menos':'más'} volumen (${hlf(f.hl)} → ${hlf(l.hl)} HL).`]);
+  }
+  // segmento más caro último mes
+  const segRows = SEG.map((s,si)=>si).filter(si=>SEG_COL[SEG[si][0]] && segOk(si)).map(si=>{ const t=tot(l.m,{seg:SEG[si][0], neg:'ALL'}); const p=S.m1>0?tot(l.m-1,{seg:SEG[si][0], neg:'ALL'}):null; return {si, v:div(t.ts,t.fact), p:p&&div(p.ts,p.fact), ts:t.ts}; }).filter(x=>x.v!=null && x.ts>0);
+  if(segRows.length){ segRows.sort((a,b)=>b.v-a.v); const t=segRows[0]; out.push(['', `En ${mlab(M[l.m])} el segmento con mayor $TS/$FACT fue <b>${esc(SEG[t.si][2])}</b> (${pct(t.v)})${t.p!=null?`, ${t.v>t.p?'arriba':'abajo'} de ${pct(t.p)} del mes anterior`:''}.`]);
+    const mv = segRows.filter(x=>x.p!=null).sort((a,b)=>Math.abs(b.v-b.p)-Math.abs(a.v-a.p))[0];
+    if(mv && mv.si!==t.si) out.push([mv.v>mv.p?'b':'g', `El mayor cambio mensual lo tuvo <b>${esc(SEG[mv.si][2])}</b>: ${pct(mv.p)} → ${pct(mv.v)}.`]); }
+  // canal
+  const canRows = CANS.map((c,ci)=>ci).filter(ci=>canOk(ci)&&CANS[ci]!=='OTROS').map(ci=>{ const t=tot(l.m,{canal:CANS[ci]}); return {ci,v:div(t.ts,t.fact)}; }).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
+  if(canRows.length>1) out.push(['', `Por canal, <b>${CANS[canRows[0].ci]}</b> tiene el $TS/$FACT más alto (${pct(canRows[0].v)}) y <b>${CANS[canRows[canRows.length-1].ci]}</b> el más bajo (${pct(canRows[canRows.length-1].v)}).`]);
+  // declarados
+  const dm = rows.map(r=>M[r.m]).filter(m=>dec[m]); if(dm.length){ const m=dm[dm.length-1], d=dec[m], g=d.dec-d.rec; out.push([g>0?'b':'g', g>0.5?`En ${mlab(m)} CMQ reconoció ${pct(div(d.rec,d.dec),1)} de lo declarado: quedaron <b>${mill(g)}</b> sin reconocer.`:`En ${mlab(m)} CMQ reconoció el 100 % de lo declarado.`]); }
+  const miss = rows.map(r=>M[r.m]).filter(m=>!dec[m]); if(miss.length) out.push(['b', `Faltan cargar DECLARADOS de ${miss.map(mlab).join(', ')}.`]);
+  $('#reading').innerHTML = out.map(([c,t])=>`<li class="${c}">${t}</li>`).join('') || '<li>Sin datos para el filtro.</li>';
+}
+
+/* ---------- declarados ---------- */
+function declByMonth(neg){ neg = neg || S.neg; const r={};
+  for(const [n,cl,m,d,rc] of D.decl){ if(neg!=='ALL' && n!==neg) continue; (r[m]=r[m]||{dec:0,rec:0}); r[m].dec+=d; r[m].rec+=rc; }
+  return r; }
+function declChartCfg(ms){ const dec=declByMonth(); const labels=ms.map(m=>mlab(M[m]));
+  return {type:'bar', data:{labels, datasets:[barDS('Declarado Zuppa', ms.map(m=>dec[M[m]]?dec[M[m]].dec:null), '--s0'), barDS('Reconocido CMQ', ms.map(m=>dec[M[m]]?dec[M[m]].rec:null), '--s1')]},
+    options: baseOpts(yM, {plugins:Object.assign(baseOpts(yM).plugins,{tooltip:Object.assign(baseOpts(yM).plugins.tooltip,{callbacks:{label:c=>' '+c.dataset.label+': '+(c.raw==null?'sin carga':mill(c.raw)), afterBody:(items)=>{ const d=items[0]&&dec[M[ms[items[0].dataIndex]]]; return d?[' % reconocido: '+pct(div(d.rec,d.dec),1),' No reconocido: '+mill(d.dec-d.rec)]:[]; }}})})})};
+}
+
+/* ---------- CANAL Y SEGMENTO ---------- */
+let CS = {m:'tshl', rows:'canal'};
+function rCanal(){
+  const ms=range(), met=METRIC[CS.m];
+  const segs = SEG.map((s,i)=>i).filter(i=>segOk(i));
+  const cans = CANS.map((c,i)=>i).filter(i=>canOk(i));
+  const cell = (o)=>{ const v=met.v(o); return v; };
+  const get = (m, c, s) => tot(m, {canal: c==null?S.canal:CANS[c], seg: s==null?S.seg:SEG[s][0], neg: s==null?S.neg:'ALL'});
+  const sumMs = (c,s)=>{ const r={ts:0,hl:0,fact:0}; for(const m of ms){ const t=get(m,c,s); r.ts+=t.ts; r.hl+=t.hl; r.fact+=t.fact; } return r; };
+  const outer = CS.rows==='canal' ? cans : segs, inner = CS.rows==='canal' ? segs : cans;
+  const nameO = i => CS.rows==='canal' ? (CANS[i]==='OTROS'?'Otros':CANS[i]) : segName(i);
+  const nameI = i => CS.rows==='canal' ? segName(i) : (CANS[i]==='OTROS'?'Otros':CANS[i]);
+  const args = (o,i)=> CS.rows==='canal' ? [o,i] : [i,o];
+  let h = `<thead><tr><th class="l sticky1">${CS.rows==='canal'?'Canal › segmento':'Segmento › canal'}</th>${ms.map(m=>`<th>${mlab(M[m])}</th>`).join('')}<th>Período</th><th>Var. ${ms.length>1?mlab(M[ms[0]])+'→'+mlab(M[ms[ms.length-1]]):''}</th></tr></thead><tbody>`;
+  const rowHtml = (cls, label, vals, tv) => { const nums=vals.filter(v=>v!=null&&isFinite(v)); const mx=Math.max(...nums.map(Math.abs),0);
+    const f=vals[0], l=vals[vals.length-1]; let vr='—';
+    if(f!=null&&l!=null&&f!==0&&ms.length>1){ const d = CS.m==='tsfact' ? (l-f)*100 : (l/f-1)*100; vr = `<span class="${d>0?(CS.m==='hl'?'down':'up'):(CS.m==='hl'?'up':'down')}">${d>0?'▲':'▼'} ${NF1.format(Math.abs(d))}${CS.m==='tsfact'?' pp':' %'}</span>`; }
+    return `<tr class="${cls}"><td class="l sticky1">${label}</td>${vals.map(v=>`<td style="${v!=null&&mx?`background:${hexA(css('--s1'), .04+.22*Math.abs(v)/mx)}`:''}">${v==null?'—':met.f(v)}</td>`).join('')}<td><b>${tv==null?'—':met.f(tv)}</b></td><td>${vr}</td></tr>`; };
+  const tsv=[];
+  for(const o of outer){
+    const vals = ms.map(m=>cell(CS.rows==='canal'?get(m,o,null):get(m,null,o)));
+    const tv = cell(CS.rows==='canal'?sumMs(o,null):sumMs(null,o));
+    if(vals.every(v=>v==null||v===0)) continue;
+    h += rowHtml('grp', nameO(o), vals, tv);
+    for(const i of inner){ const [c,s]=args(o,i); const v2=ms.map(m=>cell(get(m,c,s))); if(v2.every(v=>v==null||v===0)) continue;
+      h += rowHtml('', '<span style="padding-left:14px">'+(CS.rows==='canal'?segDot(i):'')+nameI(i)+'</span>', v2, cell(sumMs(c,s))); }
+  }
+  const all = ms.map(m=>cell(tot(m))); h += rowHtml('tot','Total filtro', all, cell(sumRange()));
+  $('#t-canal').innerHTML = h + '</tbody>';
+  // charts
+  const labels = ms.map(m=>mlab(M[m])); const fy = CS.m==='tsfact'?yP:(CS.m==='tshl'?yH:(CS.m==='ts'?yM:(v=>NF0.format(v))));
+  const segC = segs.filter(i=>SEG_COL[SEG[i][0]]);
+  const otherSegs = segs.filter(i=>!SEG_COL[SEG[i][0]]);
+  const ds = segC.map(i=>lineDS(SEG[i][2], ms.map(m=>cell(get(m,null,i))), SEG_COL[SEG[i][0]]));
+  if(otherSegs.length){ ds.push(lineDS('Otros negocios', ms.map(m=>{ const r={ts:0,hl:0,fact:0}; otherSegs.forEach(i=>{const t=get(m,null,i); r.ts+=t.ts; r.hl+=t.hl; r.fact+=t.fact;}); return cell(r); }), '--s0', {borderDash:[4,3]})); }
+  legend('#lg-seg', ds.map(d=>[d.label, d.label==='Otros negocios'?'--s0':SEG_COL[SEG[segC[ds.indexOf(d)]][0]]]));
+  $('#cs-ch1-t').textContent = met.lbl + ' por segmento'; $('#cs-ch2-t').textContent = met.lbl + ' por canal';
+  draw('c-seg', {type:'line', data:{labels, datasets:ds}, options:baseOpts(fy)});
+  legend('#lg-canal', cans.map(c=>[CANS[c]==='OTROS'?'Otros':CANS[c], CAN_COL[c]]));
+  draw('c-canal', {type:'line', data:{labels, datasets:cans.map(c=>lineDS(CANS[c]==='OTROS'?'Otros':CANS[c], ms.map(m=>cell(get(m,c,null))), CAN_COL[c]))}, options:baseOpts(fy)});
+}
+function segName(i){ const s=SEG[i]; return s[1]===s[0] ? s[2] : s[2] + (S.neg==='ALL' ? ` <span class="hint">${NEG_LBL[s[1]]}</span>` : ''); }
+function segDot(i){ const c=SEG_COL[SEG[i][0]]; return `<i class="dot" style="background:var(${c||'--s0'});margin-right:6px"></i>`; }
+
+/* ---------- ACCIONES ---------- */
+function rAcciones(){
+  const ms=range(), labels=ms.map(m=>mlab(M[m]));
+  const cats = CATS.map((c,k)=>k).filter(k=>catOk(k));
+  legend('#lg-cat2', cats.map(k=>[CAT_LBL[k], CAT_COL[k]]));
+  const tots = ms.map(m=>tot(m,{cat:'ALL'}).ts);
+  const o = baseOpts(yP); o.scales.x.stacked=true; o.scales.y.stacked=true; o.scales.y.max=1;
+  draw('c-mix', {type:'bar', data:{labels, datasets:cats.map(k=>barDS(CAT_LBL[k], ms.map((m,i)=>{ const t=tot(m,{cat:CATS[k]}).ts; const T=S.cat==='ALL'?tots[i]:cats.reduce((a,kk)=>a+tot(m,{cat:CATS[kk]}).ts,0); return div(t,T); }), CAT_COL[k], {stack:'a'}))}, options:o});
+  // tabla por categoría
+  const per = sumRange({cat:'ALL'}); let h=`<thead><tr><th class="l">Tipo</th><th>TS $</th><th>% del total</th><th>$TS/HL</th><th>$TS/$FACT</th></tr></thead><tbody>`;
+  CATS.forEach((c,k)=>{ const t=sumRange({cat:c}); h+=`<tr><td class="l"><i class="dot" style="background:var(${CAT_COL[k]});margin-right:6px"></i>${CAT_LBL[k]}</td><td>${money(t.ts)}</td><td>${pct(div(t.ts,per.ts),1)}</td><td>${money(div(t.ts,per.hl))}</td><td>${pct(div(t.ts,per.fact))}</td></tr>`; });
+  h+=`<tr class="tot"><td class="l">Total</td><td>${money(per.ts)}</td><td>100 %</td><td>${money(div(per.ts,per.hl))}</td><td>${pct(div(per.ts,per.fact))}</td></tr></tbody>`;
+  $('#t-cat').innerHTML=h;
+  // ranking de acciones
+  const A = aggAcciones(); const q=$('#a-q').value.trim().toLowerCase();
+  let list = Object.values(A).filter(a=>!q || a.name.toLowerCase().includes(q) || String(a.code).includes(q));
+  const key=$('#a-sort').value; const sv = a=> key==='ts'?a.ts : key==='cl'?a.cl : key==='tshl'?(div(a.ts,a.hl)||0) : (div(a.ts,a.fact)||0);
+  list.sort((a,b)=>sv(b)-sv(a)); const n=+$('#a-n').value;
+  $('#acc-count').textContent = `${list.length} acciones con gasto en el período${list.length>n?` · mostrando ${n}`:''}`;
+  const mx = Math.max(...list.map(a=>a.ts),1);
+  h = `<thead><tr><th class="l">#</th><th class="l">Acción</th><th class="l">Tipo</th>${ms.map(m=>`<th>${mlab(M[m])}</th>`).join('')}<th>TS período</th><th>Clientes (máx/mes)</th><th>HL impactados</th><th>$TS/HL</th><th>$TS/$FACT</th></tr></thead><tbody>`;
+  list.slice(0,n).forEach((a,i)=>{ h+=`<tr class="click" data-ai="${a.ai}"><td class="l">${i+1}</td><td class="l wr"><b>${esc(a.name)}</b> <span class="hint mono">${a.code||''}</span></td><td class="l"><span class="chip"><i class="dot" style="background:var(${CAT_COL[a.cat]})"></i>${CAT_LBL[a.cat]}</span></td>${ms.map(m=>`<td>${a.bm[m]?mill(a.bm[m]):'<span class="hint">·</span>'}</td>`).join('')}<td><b>${money(a.ts)}</b><span class="bar-in" style="width:${Math.max(2,40*a.ts/mx)}px"></span></td><td>${NF0.format(a.cl)}</td><td>${hlf(a.hl)}</td><td>${money(div(a.ts,a.hl))}</td><td>${pct(div(a.ts,a.fact))}</td></tr>`; });
+  $('#t-acc').innerHTML = h + (list.length?'':'<tr><td class="empty" colspan="20">Sin acciones para el filtro.</td></tr>') + '</tbody>';
+}
+function aggAcciones(){
+  const A={}; const inR=m=>m>=S.m0&&m<=S.m1;
+  const segAll = S.neg==='ALL' && S.seg==='ALL';
+  const ncl = {};
+  for(const [ai,mi,c,n] of D.accN){ if(!inR(mi)||!canOk(c)) continue; const k=ai+'|'+mi; ncl[k]=(ncl[k]||0)+n; }
+  const nclSeg = {};
+  for(const [ai,mi,c,s,ts,n,hl,fa] of D.acc){ const cat=D.acciones[ai][2]; if(!inR(mi)||!canOk(c)||!segOk(s)||!catOk(cat)) continue;
+    const a = A[ai] || (A[ai]={ai, code:D.acciones[ai][0], name:D.acciones[ai][1], cat, ts:0, hl:0, fact:0, bm:{}, cl:0, clm:{}});
+    a.ts+=ts; a.hl+=hl; a.fact+=fa; a.bm[mi]=(a.bm[mi]||0)+ts; if(!segAll){ const k=ai+'|'+mi; nclSeg[k]=Math.max(nclSeg[k]||0,n); } }
+  for(const a of Object.values(A)){ for(const m in a.bm){ const k=a.ai+'|'+m; const v = segAll ? (ncl[k]||0) : (nclSeg[k]||0); a.clm[m]=v; a.cl=Math.max(a.cl,v); } }
+  return A;
+}
+function accDetail(ai){
+  const act=D.acciones[ai]; const byM={}, byC={}, byS={};
+  for(const [a,mi,c,s,ts,n,hl,fa] of D.acc){ if(a!=ai) continue; if(mi<S.m0||mi>S.m1||!canOk(c)||!segOk(s)) continue;
+    (byM[mi]=byM[mi]||{ts:0,hl:0,fact:0}); byM[mi].ts+=ts; byM[mi].hl+=hl; byM[mi].fact+=fa;
+    byC[c]=(byC[c]||0)+ts; byS[s]=(byS[s]||0)+ts; }
+  const ms=range();
+  let h=`<button class="btn sm x" type="button" data-close>Cerrar</button><div><span class="chip"><i class="dot" style="background:var(${CAT_COL[act[2]]})"></i>${CAT_LBL[act[2]]}</span> <span class="hint mono">Código ${act[0]||'—'}</span></div><h2 style="font-size:22px">${esc(act[1])}</h2>
+  <div class="panel"><div class="chart"><canvas id="c-dr"></canvas></div></div>
+  <div class="tw"><table><thead><tr><th class="l">Mes</th><th>TS $</th><th>HL impactados</th><th>Fact. impactada</th><th>$TS/HL</th><th>$TS/$FACT</th></tr></thead><tbody>${ms.filter(m=>byM[m]).map(m=>{const r=byM[m]; return `<tr><td class="l">${mlab(M[m])}</td><td>${money(r.ts)}</td><td>${hlf(r.hl)}</td><td>${money(r.fact)}</td><td>${money(div(r.ts,r.hl))}</td><td>${pct(div(r.ts,r.fact))}</td></tr>`;}).join('')}</tbody></table></div>
+  <div class="grid2"><div class="tw"><table><thead><tr><th class="l">Canal</th><th>TS $</th></tr></thead><tbody>${Object.entries(byC).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<tr><td class="l">${CANS[c]}</td><td>${money(v)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="tw"><table><thead><tr><th class="l">Segmento</th><th>TS $</th></tr></thead><tbody>${Object.entries(byS).sort((a,b)=>b[1]-a[1]).map(([s,v])=>`<tr><td class="l">${segDot(+s)}${segName(+s)}</td><td>${money(v)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  openDrawer(h);
+  draw('c-dr',{type:'bar', data:{labels:ms.map(m=>mlab(M[m])), datasets:[barDS('TS', ms.map(m=>byM[m]?byM[m].ts:null), CAT_COL[act[2]])]}, options:baseOpts(yM)});
+}
+
+/* ---------- CMQ ---------- */
+let DCV='rec';
+function rCmq(){
+  const ms=range(); const dec=declByMonth();
+  let sd=0, sr=0, nm=0; ms.forEach(m=>{ const d=dec[M[m]]; if(d){ sd+=d.dec; sr+=d.rec; nm++; } });
+  const DS = descAgg();
+  const miss = ms.filter(m=>!dec[M[m]]).map(m=>mlab(M[m]));
+  $('#kpis-cmq').innerHTML = [
+    ['Declarado Zuppa', mill(sd), `${nm} ${nm===1?'mes':'meses'} con DECLARADOS`],
+    ['Reconocido CMQ', mill(sr), pct(div(sr,sd),1)+' de lo declarado'],
+    ['No reconocido', mill(sd-sr), miss.length?('Sin carga: '+miss.join(', ')):'Todos los meses cargados'],
+    ['Descentralizadas CMQ', mill(DS.tot.cmq), 'Parte reconocida por CMQ'],
+    ['Descentralizadas Zuppa', mill(DS.tot.zup), 'Pagadas por el distribuidor'],
+  ].map(([l,v,d])=>`<div class="kpi"><div class="lb">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+  draw('c-decl', declChartCfg(ms));
+  const o=baseOpts(yM); o.scales.x.stacked=true; o.scales.y.stacked=true;
+  draw('c-desc', {type:'bar', data:{labels:ms.map(m=>mlab(M[m])), datasets:[barDS('Reconocido CMQ', ms.map(m=>DS.m[m]?DS.m[m].cmq:0), '--s1',{stack:'a'}), barDS('Pagado por Zuppa', ms.map(m=>DS.m[m]?DS.m[m].zup:0), '--s4',{stack:'a'}), barDS('Sin registro en planilla', ms.map(m=>DS.m[m]?DS.m[m].nr:0), '--s0',{stack:'a'})]}, options:o});
+  // tabla declarados por cluster
+  const rows={}; for(const [n,cl,m,d,r] of D.decl){ if(S.neg!=='ALL'&&n!==S.neg) continue; const mi=M.indexOf(m); if(mi<S.m0||mi>S.m1) continue;
+    const k=n+'|'+cl; (rows[k]=rows[k]||{n,cl,m:{}}); rows[k].m[m]={d,r}; }
+  const val = x => !x ? null : DCV==='rec'?x.r : DCV==='dec'?x.d : x.d-x.r;
+  let h=`<thead><tr><th class="l sticky1">Negocio · cluster</th>${ms.map(m=>`<th>${mlab(M[m])}</th>`).join('')}<th>Período</th><th>% Rec.</th></tr></thead><tbody>`;
+  let lastN='';
+  Object.values(rows).forEach(r=>{ if(r.n!==lastN){ lastN=r.n; const tt={}; Object.values(rows).filter(x=>x.n===r.n).forEach(x=>{ for(const m in x.m){ tt[m]=tt[m]||{d:0,r:0}; tt[m].d+=x.m[m].d; tt[m].r+=x.m[m].r; } });
+      const sD=Object.values(tt).reduce((a,x)=>a+x.d,0), sR=Object.values(tt).reduce((a,x)=>a+x.r,0);
+      h+=`<tr class="grp"><td class="l sticky1">${NEG_LBL[r.n]}</td>${ms.map(m=>`<td>${tt[M[m]]?money(val(tt[M[m]])):'<span class="hint">sin carga</span>'}</td>`).join('')}<td>${money(val({d:sD,r:sR}))}</td><td>${pct(div(sR,sD),1)}</td></tr>`; }
+    const sD=Object.values(r.m).reduce((a,x)=>a+x.d,0), sR=Object.values(r.m).reduce((a,x)=>a+x.r,0);
+    h+=`<tr><td class="l sticky1" style="padding-left:24px">${esc(r.cl)}</td>${ms.map(m=>{ const x=r.m[M[m]]; const v=val(x); const bad = x && x.d-x.r>0.5; return `<td class="${DCV==='dif'&&bad?'neg':''}">${x?money(v):'<span class="hint">·</span>'}</td>`; }).join('')}<td>${money(val({d:sD,r:sR}))}</td><td class="${sR<sD-0.5?'neg':''}">${pct(div(sR,sD),1)}</td></tr>`; });
+  $('#t-decl').innerHTML = h + '</tbody>';
+  // tabla descentralizadas
+  const fc=$('#d-cargo').value;
+  const L = DS.list.filter(x=> fc==='ALL' || (fc==='NR' ? (x.cargo==='NO REGISTRADA'||x.cargo==='SIN DATO') : x.cargo===fc)).sort((a,b)=>a.mi-b.mi||b.ts-a.ts);
+  h=`<thead><tr><th class="l">Mes</th><th class="l">Acción</th><th class="l">A cargo</th><th>TS ejecutado</th><th>% CMQ</th><th>Reconoce CMQ</th><th>Paga Zuppa</th><th>Clientes</th></tr></thead><tbody>`;
+  L.forEach(x=>{ const pill = x.cargo==='CMQ'?'<span class="pill cmq">CMQ</span>':x.cargo==='ZUPPA'?'<span class="pill zup">Zuppa</span>':x.cargo==='MIXTA'?'<span class="pill mix">CMQ / Zuppa</span>':'<span class="pill na">Sin registro</span>';
+    h+=`<tr><td class="l">${mlab(M[x.mi])}</td><td class="l wr">${esc(D.acciones[x.ai][1])} <span class="hint mono">${D.acciones[x.ai][0]||''}</span></td><td class="l">${pill}</td><td>${money(x.ts)}</td><td>${x.share==null?'—':pct(x.share,0)}</td><td>${x.share==null?'—':money(x.ts*x.share)}</td><td>${x.share==null?'—':money(x.ts*(1-x.share))}</td><td>${NF0.format(x.ncl)}</td></tr>`; });
+  h+=`<tr class="tot"><td class="l" colspan="3">Total (${L.length})</td><td>${money(L.reduce((a,x)=>a+x.ts,0))}</td><td></td><td>${money(L.reduce((a,x)=>a+(x.share==null?0:x.ts*x.share),0))}</td><td>${money(L.reduce((a,x)=>a+(x.share==null?0:x.ts*(1-x.share)),0))}</td><td></td></tr>`;
+  $('#t-desc').innerHTML = h+'</tbody>';
+  // planilla
+  const P = D.planilla.filter(p=>{ if(!p.ini) return true; const mi=M.indexOf(p.ini.slice(0,4)+'/'+p.ini.slice(5,7)); return mi<0 || (mi>=S.m0 && mi<=S.m1); });
+  h=`<thead><tr><th class="l">Inicio</th><th class="l">Fin</th><th class="l">Código</th><th class="l">Acción</th><th class="l">Producto</th><th class="l">A cargo</th><th class="l">Tipo</th><th>TS plan</th><th>TS ejecutado (código)</th><th>% CMQ</th><th class="l">Autorizó</th><th class="l">Estado</th></tr></thead><tbody>`;
+  const fd = s=> s? s.slice(8,10)+'/'+s.slice(5,7) : '—';
+  P.forEach(p=>{ h+=`<tr><td class="l">${fd(p.ini)}${p.fechaErr?' <span class="pill bad" title="Fecha mal cargada en la planilla">revisar</span>':''}</td><td class="l">${fd(p.fin)}</td><td class="l mono">${p.code||'<span class="pill bad">sin código</span>'}</td><td class="l wr">${esc(p.nombre)||'<span class="hint">—</span>'}</td><td class="l wr">${esc(p.desc)}</td><td class="l">${esc(p.cargo)||'—'}</td><td class="l">${esc(p.tipo)}</td><td>${p.tsPlan==null?'—':money(p.tsPlan)}</td><td>${p.ejecutado==null?'<span class="hint">no figura en base</span>':money(p.ejecutado)}</td><td>${p.pctCmq!=null&&p.pctCmq<=1?pct(p.pctCmq,1):'—'}</td><td class="l">${esc(p.autorizo)}</td><td class="l">${p.aprobada==='OK'?'<span class="pill ok">OK</span>':'<span class="pill wait">'+(esc(p.aprobada)||'s/d')+'</span>'}</td></tr>`; });
+  $('#t-plan').innerHTML = h+'</tbody>';
+}
+function descAgg(){ const m={}, list=[], tot={cmq:0,zup:0,nr:0};
+  const byK={};
+  for(const x of D.desc){ if(x.mi<S.m0||x.mi>S.m1) continue; if(S.neg!=='ALL' && NEGS[x.neg]!==S.neg) continue; if(!canOk(x.canal)) continue;
+    const k=x.ai+'|'+x.mi; const r = byK[k] || (byK[k]={ai:x.ai, mi:x.mi, ts:0, ncl:0, cargo:x.cargo, share:x.shareCmq}); r.ts+=x.ts; r.ncl+=x.ncl; }
+  for(const r of Object.values(byK)){ list.push(r); const mm=m[r.mi]||(m[r.mi]={cmq:0,zup:0,nr:0});
+    if(r.share==null){ mm.nr+=r.ts; tot.nr+=r.ts; } else { mm.cmq+=r.ts*r.share; mm.zup+=r.ts*(1-r.share); tot.cmq+=r.ts*r.share; tot.zup+=r.ts*(1-r.share); } }
+  return {m, list, tot}; }
+
+/* ---------- CLIENTES ---------- */
+let CCELL='ts';
+function rClientes(){
+  const ms=range(); const inR=m=>m>=S.m0&&m<=S.m1; const C={};
+  const get=ci=> C[ci] || (C[ci]={ci, ts:0, hl:0, fact:0, m:{}});
+  for(const [ci,mi,s,k,v] of D.ts){ if(!inR(mi)||!segOk(s)||!catOk(k)||!canOk(CUBE.clCan[ci])) continue; const c=get(ci); c.ts+=v; const x=c.m[mi]||(c.m[mi]={ts:0,hl:0,fact:0}); x.ts+=v; }
+  for(const [ci,mi,s,h,f] of D.vta){ if(!inR(mi)||!segOk(s)||!canOk(CUBE.clCan[ci])) continue; const c=C[ci]; if(!c) continue; c.hl+=h; c.fact+=f; const x=c.m[mi]||(c.m[mi]={ts:0,hl:0,fact:0}); x.hl+=h; x.fact+=f; }
+  let all=Object.values(C).filter(c=>c.ts>0);
+  // posiciones por mes (por TS)
+  const rk={}; for(const m of ms){ const arr=all.filter(c=>c.m[m]&&c.m[m].ts>0).sort((a,b)=>b.m[m].ts-a.m[m].ts); arr.forEach((c,i)=>{ (rk[c.ci]=rk[c.ci]||{})[m]=i+1; }); }
+  const min=+$('#c-min').value, q=$('#c-q').value.trim().toLowerCase(), key=$('#c-sort').value;
+  const sv=c=> key==='ts'?c.ts : key==='fact'?c.fact : key==='tshl'?(div(c.ts,c.hl)||0) : (div(c.ts,c.fact)||0);
+  all.sort((a,b)=>sv(b)-sv(a)); all.forEach((c,i)=>c.pos=i+1);
+  let list = all.filter(c=>c.fact>=min || key==='ts' && min===0);
+  if(min>0) list = all.filter(c=>c.fact>=min);
+  list.forEach((c,i)=>c.pos=i+1);
+  if(q) list = list.filter(c=>{ const cl=D.clientes[c.ci]; return cl[1].toLowerCase().includes(q)||cl[0].includes(q); });
+  const n=+$('#c-n').value; const lm=ms[ms.length-1], pm=ms.length>1?ms[ms.length-2]:null;
+  $('#cli-count').textContent = `${list.length} clientes con gasto${min>0?' y facturación ≥ '+mill(min):''}${list.length>n?` · mostrando ${n}`:''}. Posición mensual: puesto por TS dentro de cada mes.`;
+  const maxc = {}; ms.forEach(m=>{ maxc[m]=Math.max(1,...list.slice(0,n).map(c=>c.m[m]?(CCELL==='tsfact'?(div(c.m[m].ts,c.m[m].fact)||0):c.m[m].ts):0)); });
+  let h=`<thead><tr><th class="l">#</th><th class="l sticky1">Cliente</th><th class="l">Canal</th><th>TS período</th><th>$TS/$FACT</th><th>$TS/HL</th><th>Facturación</th>${ms.map(m=>`<th>${mlab(M[m])}</th>`).join('')}<th>Puesto ${mlab(M[lm])}</th><th>Δ vs ${pm!=null?mlab(M[pm]):'—'}</th></tr></thead><tbody>`;
+  list.slice(0,n).forEach(c=>{ const cl=D.clientes[c.ci]; const r=rk[c.ci]||{}; const a=r[lm], b=pm!=null?r[pm]:null;
+    let dv='—'; if(a&&b){ const d=b-a; dv = d===0?'<span class="flat">=</span>':`<span class="${d>0?'up':'down'}">${d>0?'▲':'▼'} ${Math.abs(d)}</span>`; } else if(a&&!b&&pm!=null) dv='<span class="chip">nuevo</span>';
+    h+=`<tr class="click" data-ci="${c.ci}"><td class="l">${c.pos}</td><td class="l sticky1"><b>${esc(cl[1])}</b> <span class="hint mono">${esc(cl[0])}</span></td><td class="l"><span class="chip"><i class="dot" style="background:var(${CAN_COL[cl[2]]})"></i>${CANS[cl[2]]==='OTROS'?'Otros':CANS[cl[2]]}</span></td><td><b>${money(c.ts)}</b></td><td>${pct(div(c.ts,c.fact))}</td><td>${money(div(c.ts,c.hl))}</td><td>${money(c.fact)}</td>${ms.map(m=>{ const x=c.m[m]; if(!x||!x.ts) return '<td><span class="hint">·</span></td>'; if(CCELL==='rank') return `<td>${r[m]?'#'+r[m]:'—'}</td>`; const v=CCELL==='tsfact'?div(x.ts,x.fact):x.ts; return `<td style="background:${hexA(css('--s1'),.04+.22*Math.min(1,(v||0)/maxc[m]))}">${CCELL==='tsfact'?pct(v,1):mill(v)}</td>`; }).join('')}<td>${a?'#'+a:'—'}</td><td>${dv}</td></tr>`; });
+  $('#t-cli').innerHTML = h + (list.length?'':'<tr><td class="empty" colspan="30">Sin clientes para el filtro.</td></tr>') + '</tbody>';
+  rClientes.last = {C, rk};
+}
+function cliDetail(ci){
+  const cl=D.clientes[ci]; const ms=range(); const byM={}, byS={}, byK={};
+  for(const [c,mi,s,k,v] of D.ts){ if(c!=ci||mi<S.m0||mi>S.m1||!segOk(s)||!catOk(k)) continue; (byM[mi]=byM[mi]||{ts:0,hl:0,fact:0}).ts+=v; byS[s]=(byS[s]||0)+v; byK[k]=(byK[k]||0)+v; }
+  for(const [c,mi,s,h,f] of D.vta){ if(c!=ci||mi<S.m0||mi>S.m1||!segOk(s)) continue; const x=(byM[mi]=byM[mi]||{ts:0,hl:0,fact:0}); x.hl+=h; x.fact+=f; }
+  const rk=(rClientes.last&&rClientes.last.rk[ci])||{};
+  let h=`<button class="btn sm x" type="button" data-close>Cerrar</button><div><span class="chip">${CANS[cl[2]]==='OTROS'?'Otros':CANS[cl[2]]}</span> <span class="hint mono">Cliente ${esc(cl[0])}</span></div><h2 style="font-size:22px">${esc(cl[1])}</h2>
+  <div class="panel"><div class="ph"><h3>TS mensual</h3></div><div class="chart"><canvas id="c-dr"></canvas></div></div>
+  <div class="tw"><table><thead><tr><th class="l">Mes</th><th>Puesto</th><th>TS $</th><th>HL</th><th>Facturación</th><th>$TS/HL</th><th>$TS/$FACT</th></tr></thead><tbody>${ms.map(m=>{ const r=byM[m]; if(!r) return `<tr><td class="l">${mlab(M[m])}</td><td colspan="6" class="hint" style="text-align:left">sin compras ni gasto</td></tr>`; return `<tr><td class="l">${mlab(M[m])}</td><td>${rk[m]?'#'+rk[m]:'—'}</td><td>${money(r.ts)}</td><td>${hlf(r.hl)}</td><td>${money(r.fact)}</td><td>${money(div(r.ts,r.hl))}</td><td>${pct(div(r.ts,r.fact))}</td></tr>`; }).join('')}</tbody></table></div>
+  <div class="grid2"><div class="tw"><table><thead><tr><th class="l">Tipo de acción</th><th>TS $</th></tr></thead><tbody>${Object.entries(byK).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td class="l">${CAT_LBL[k]}</td><td>${money(v)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="tw"><table><thead><tr><th class="l">Segmento</th><th>TS $</th></tr></thead><tbody>${Object.entries(byS).sort((a,b)=>b[1]-a[1]).map(([s,v])=>`<tr><td class="l">${segDot(+s)}${segName(+s)}</td><td>${money(v)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  openDrawer(h);
+  draw('c-dr',{type:'bar', data:{labels:ms.map(m=>mlab(M[m])), datasets:[barDS('TS', ms.map(m=>byM[m]?byM[m].ts:null), '--s1')]}, options:baseOpts(yM)});
+}
+function openDrawer(h){ const d=$('#drawer'); $('#drawer-in').innerHTML=h; d.hidden=false; d.querySelector('[data-close]').focus(); }
+function closeDrawer(){ $('#drawer').hidden=true; if(CH['c-dr']){CH['c-dr'].destroy(); delete CH['c-dr'];} }
+
+/* ---------- controls ---------- */
+function toggleGroup(sel, attr, cb){ $(sel).addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; $(sel).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===b)); cb(b.dataset[attr]); }); }
+function initControls(){
+  toggleGroup('#cs-metric','m', v=>{CS.m=v; rCanal();});
+  toggleGroup('#cs-rows','r', v=>{CS.rows=v; rCanal();});
+  toggleGroup('#dc-view','d', v=>{DCV=v; rCmq();});
+  toggleGroup('#c-cell','c', v=>{CCELL=v; rClientes();});
+  ['#a-q','#a-sort','#a-n'].forEach(s=>$(s).addEventListener(s==='#a-q'?'input':'change', rAcciones));
+  ['#c-q','#c-sort','#c-min','#c-n'].forEach(s=>$(s).addEventListener(s==='#c-q'?'input':'change', rClientes));
+  $('#d-cargo').addEventListener('change', rCmq);
+  $('#t-acc').addEventListener('click', e=>{ const tr=e.target.closest('tr[data-ai]'); if(tr) accDetail(+tr.dataset.ai); });
+  $('#t-cli').addEventListener('click', e=>{ const tr=e.target.closest('tr[data-ci]'); if(tr) cliDetail(+tr.dataset.ci); });
+  $('#drawer').addEventListener('click', e=>{ if(e.target.id==='drawer' || e.target.closest('[data-close]')) closeDrawer(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !$('#drawer').hidden) closeDrawer(); });
+  $('#cp-mensual').addEventListener('click', ()=>copyText(tableTSV('#t-mensual')));
+  $('#cp-canal').addEventListener('click', ()=>copyText(tableTSV('#t-canal')));
+  $('#cp-acc').addEventListener('click', ()=>copyText(tableTSV('#t-acc')));
+  $('#cp-desc').addEventListener('click', ()=>copyText(tableTSV('#t-desc')));
+  $('#cp-cli').addEventListener('click', ()=>copyText(tableTSV('#t-cli')));
+}
+
+/* ---------- PLANES SMART ---------- */
+const Plans = {
+  list: [], api: '', mode: 'local',
+  async init(){
+    this.api = (D.meta && D.meta.planesApi) || '';
+    $('#p-neg').innerHTML = opt('ALL','Todos') + NEGS.map(n=>opt(n,NEG_LBL[n])).join('');
+    $('#p-canal').innerHTML = opt('ALL','Todos') + CANS.map(c=>opt(c,c==='OTROS'?'Otros':c)).join('');
+    fillSeg('#p-seg','ALL','ALL');
+    $('#p-neg').addEventListener('change', e=>fillSeg('#p-seg', e.target.value, 'ALL'));
+    $('#pf').addEventListener('submit', e=>{ e.preventDefault(); this.save(); });
+    $('#p-cancel').addEventListener('click', ()=>this.reset());
+    $('#p-take').addEventListener('click', ()=>this.take());
+    $('#pl-fil').addEventListener('change', ()=>this.render());
+    $('#cp-plan').addEventListener('click', ()=>copyText(this.tsv()));
+    $('#plans').addEventListener('click', e=>{ const b=e.target.closest('button[data-a]'); if(!b) return; const id=b.closest('.plan').dataset.id;
+      if(b.dataset.a==='edit') this.edit(id);
+      if(b.dataset.a==='del'){ b.hidden=true; b.nextElementSibling.hidden=false; }
+      if(b.dataset.a==='del-ok') this.remove(id);
+      if(b.dataset.a==='del-no'){ b.parentElement.hidden=true; b.parentElement.previousElementSibling.hidden=false; } });
+    await this.load();
+  },
+  async load(){
+    if(this.api){ try{ const r=await fetch(this.api+'?action=planes',{cache:'no-store'}); const j=await r.json(); this.list=j.planes||[]; this.mode='sheet'; }catch(e){ this.mode='error'; this.list=this.localGet(); } }
+    else { this.mode='local'; this.list=this.localGet(); }
+    const b=$('#plan-mode');
+    b.hidden = this.mode==='sheet';
+    b.innerHTML = this.mode==='error' ? '<b>No se pudo conectar con el Sheet.</b> Se muestran los planes guardados en este navegador. Revisá que la Web App esté publicada con acceso "Cualquier usuario".' : '<b>Modo vista previa:</b> los planes quedan guardados solo en este navegador. Cuando el tablero se publique desde el Sheet, se guardan en la pestaña PLANES_SMART y los ve todo el equipo.';
+    if(S && S.tab==='planes') this.render();
+  },
+  localGet(){ try{ return JSON.parse(localStorage.getItem('ts_planes_smart')||'[]'); }catch(e){ return []; } },
+  localSet(){ try{ localStorage.setItem('ts_planes_smart', JSON.stringify(this.list)); }catch(e){} },
+  read(){ const g=id=>$(id).value.trim(); return { id: g('#p-id') || ('P'+Date.now().toString(36)), creado: new Date().toISOString().slice(0,10),
+    titulo:g('#p-titulo'), especifico:g('#p-esp'), indicador:$('#p-ind').value, base:g('#p-base'), meta:g('#p-meta'), fecha:g('#p-fecha'),
+    alcanzable:g('#p-alc'), relevante:g('#p-rel'), negocio:$('#p-neg').value, segmento:$('#p-seg').value, canal:$('#p-canal').value,
+    responsable:g('#p-resp'), estado:$('#p-estado').value, seguimiento:g('#p-seg-txt'), actualizado:new Date().toISOString().slice(0,16).replace('T',' ') }; },
+  async save(){
+    const p=this.read(); const old=this.list.find(x=>x.id===p.id); if(old) p.creado=old.creado||p.creado;
+    $('#p-save').disabled=true;
+    try{
+      if(this.mode==='sheet'){ const r=await fetch(this.api,{method:'POST', body:JSON.stringify({action:'guardarPlan', plan:p})}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'error'); await this.load(); }
+      else { this.list = this.list.filter(x=>x.id!==p.id).concat([p]); this.localSet(); }
+      toast(old?'Plan actualizado':'Plan guardado'); this.reset(); this.render();
+    }catch(e){ toast('No se pudo guardar: '+e.message); }
+    $('#p-save').disabled=false;
+  },
+  async remove(id){
+    try{ if(this.mode==='sheet'){ await fetch(this.api,{method:'POST', body:JSON.stringify({action:'borrarPlan', id})}); await this.load(); }
+      else { this.list=this.list.filter(x=>x.id!==id); this.localSet(); }
+      toast('Plan eliminado'); this.render(); }catch(e){ toast('No se pudo eliminar'); }
+  },
+  edit(id){ const p=this.list.find(x=>x.id===id); if(!p) return; const s=(i,v)=>$(i).value=v??'';
+    s('#p-id',p.id); s('#p-titulo',p.titulo); s('#p-esp',p.especifico); s('#p-ind',p.indicador); s('#p-base',p.base); s('#p-meta',p.meta); s('#p-fecha',p.fecha);
+    s('#p-alc',p.alcanzable); s('#p-rel',p.relevante); s('#p-neg',p.negocio||'ALL'); fillSeg('#p-seg',p.negocio||'ALL',p.segmento||'ALL'); s('#p-canal',p.canal||'ALL'); s('#p-resp',p.responsable); s('#p-estado',p.estado); s('#p-seg-txt',p.seguimiento);
+    $('#pf-title').textContent='Editar plan'; $('#p-cancel').hidden=false; $('#pf').scrollIntoView({behavior:'smooth',block:'start'}); },
+  reset(){ $('#pf').reset(); $('#p-id').value=''; fillSeg('#p-seg','ALL','ALL'); $('#pf-title').textContent='Nuevo plan'; $('#p-cancel').hidden=true; },
+  take(){ const ind=$('#p-ind').value; const o={neg:$('#p-neg').value, seg:$('#p-seg').value, canal:$('#p-canal').value, cat:'ALL'}; const m=S.m1; const t=tot(m,o);
+    let v='—'; if(ind==='tsfact') v=pct(div(t.ts,t.fact)); else if(ind==='tshl') v=money(div(t.ts,t.hl)); else if(ind==='ts') v=mill(t.ts);
+    else if(ind==='rec'){ const d=declByMonth(o.neg); const k=[...M].reverse().find(x=>d[x]); v=k?pct(div(d[k].rec,d[k].dec),1):'—'; }
+    $('#p-base').value = v + (ind!=='otro'&&ind!=='rec' ? ' ('+mlab(M[m])+')' : ''); },
+  status(p){ if(p.estado==='Cumplido'||p.estado==='No cumplido') return p.estado; const hoy=new Date(Date.now()-3*3600e3).toISOString().slice(0,10); return p.fecha && p.fecha<hoy ? 'Vencido' : p.estado; },
+  render(){
+    const f=$('#pl-fil').value; const IND={tsfact:'$TS/$FACT',tshl:'$TS/HL',ts:'TS $',rec:'% reconocido CMQ',otro:'Otro'};
+    const L=this.list.filter(p=> f==='ALL' || (f==='VENC' ? this.status(p)==='Vencido' : p.estado===f)).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+    const pill = s => s==='Cumplido'?'ok':(s==='Vencido'||s==='No cumplido')?'bad':s==='En curso'?'cmq':'wait';
+    const scope = p => [p.negocio&&p.negocio!=='ALL'?NEG_LBL[p.negocio]:null, p.segmento&&p.segmento!=='ALL'?(SEG.find(s=>s[0]===p.segmento)||[,,p.segmento])[2]:null, p.canal&&p.canal!=='ALL'?p.canal:null].filter(Boolean).join(' · ') || 'Todos los negocios';
+    const fd = s => s ? s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4) : '—';
+    $('#plans').innerHTML = L.length ? L.map(p=>{ const st=this.status(p); return `<article class="plan" data-id="${esc(p.id)}"><div class="hd"><h4>${esc(p.titulo)}</h4><span class="pill ${pill(st)}">${esc(st)}</span></div>
+      <div class="meta"><span class="chip">${esc(scope(p))}</span><span class="chip">Resp.: ${esc(p.responsable)}</span><span class="chip">Vence ${fd(p.fecha)}</span></div>
+      <dl><dt>S</dt><dd>${esc(p.especifico)}</dd><dt>M</dt><dd>${esc(IND[p.indicador]||p.indicador)}: de <b>${esc(p.base||'—')}</b> a <b>${esc(p.meta)}</b></dd>${p.alcanzable?`<dt>A</dt><dd>${esc(p.alcanzable)}</dd>`:''}${p.relevante?`<dt>R</dt><dd>${esc(p.relevante)}</dd>`:''}<dt>T</dt><dd>${fd(p.fecha)}</dd>${p.seguimiento?`<dt>↻</dt><dd>${esc(p.seguimiento)}</dd>`:''}</dl>
+      <div class="act"><button class="btn sm" type="button" data-a="edit">Editar / actualizar</button><button class="btn sm ghost" type="button" data-a="del">Eliminar</button><span hidden>¿Eliminar este plan? <button class="btn sm" type="button" data-a="del-ok">Sí, eliminar</button> <button class="btn sm ghost" type="button" data-a="del-no">No</button></span></div></article>`; }).join('')
+      : `<div class="panel empty">${this.list.length?'No hay planes con ese estado.':'Todavía no hay planes cargados. Usá "Lectura del período" en Resumen para detectar oportunidades y cargá el primero acá.'}</div>`;
+  },
+  tsv(){ const H=['Creado','Oportunidad','Específico','Indicador','Valor actual','Meta','Alcanzable','Relevante','Fecha límite','Negocio','Segmento','Canal','Responsable','Estado','Seguimiento'];
+    return [H.join('\t')].concat(this.list.map(p=>[p.creado,p.titulo,p.especifico,p.indicador,p.base,p.meta,p.alcanzable,p.relevante,p.fecha,p.negocio,p.segmento,p.canal,p.responsable,this.status(p),p.seguimiento].map(x=>String(x??'').replace(/\s+/g,' ')).join('\t'))).join('\n'); }
+};
+
+boot();
+})();
+</script>
+
+</html>
