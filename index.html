@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es">
 <meta charset="utf-8">
-<title>Informe de Trade Spend Zuppa</title>
+<title>Revenue Zuppa</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -186,6 +186,82 @@ form.smart textarea{background:var(--panel);border:1px solid var(--rule-2);borde
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
+<style>
+/* ===== Bloque REVENUE: selector de informe + módulo 2.4.1.3 Clientes TOP ===== */
+.rev-switch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:12px}
+.rev-switch .eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;color:var(--ink-3);font-weight:600}
+.rev-switch .seg-toggle button{padding:6px 12px}
+.rev-switch .seg-toggle .cd{font-family:var(--f-mono);font-size:10.5px;opacity:.7;margin-right:6px}
+body.mode-top #filters, body.mode-top #tabs, body.mode-top main > .view, body.mode-top #loading{display:none!important}
+body:not(.mode-top) .top-only{display:none!important}
+.tview{display:flex;flex-direction:column;gap:22px}
+.tfilters{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 0 10px;align-items:end}
+.tp-badge{display:inline-block;font-family:var(--f-mono);font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--amber-soft);color:var(--amber);vertical-align:middle;margin-left:6px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px}
+.ccard{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;border-top:4px solid var(--cc,var(--s0))}
+.ccard:hover{border-color:var(--rule-2);border-top-color:var(--cc)}
+.ccard .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ccard h3{font-size:18px}
+.ccard .tot{font-family:var(--f-mono);font-size:12px;color:var(--ink-3)}
+.conc{display:flex;flex-direction:column;gap:4px}
+.conc .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+.conc .lbl b{font-family:var(--f-mono);color:var(--ink)}
+.meter{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;display:flex}
+.meter i{display:block;height:100%;background:var(--cc,var(--s1))}
+.ccard{min-width:0}
+.ccard .mw{overflow-x:auto;margin-inline:-4px}
+.mini{width:100%;font-size:12.5px}
+.drawer .kpis{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))}
+.mini td,.mini th{padding:5px 4px}
+.mini th{position:static;background:transparent;border-bottom:1px solid var(--rule-2);font-size:10px}
+.mini td.l{max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.rk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--panel-2);font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink)}
+.rk.r1{background:var(--ink);color:var(--paper)}
+.flag{display:inline-block;font-family:var(--f-body);font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;letter-spacing:.02em}
+.flag.hi{background:var(--bad-soft);color:var(--bad)}
+.flag.lo{background:var(--good-soft);color:var(--good)}
+.flag.mid{background:var(--panel-2);color:var(--ink-2)}
+.flag.des{background:var(--bad-soft);color:var(--bad)}
+.flag.man{background:var(--good-soft);color:var(--good)}
+.flag.new{background:var(--accent-soft);color:var(--accent)}
+.flag.nd{background:var(--panel-2);color:var(--ink-3);font-weight:600}
+table.big th.gh{text-align:center;font-size:10.5px;letter-spacing:.1em;border-left:2px solid var(--rule-2)}
+table.big th.gh.g-vol{background:var(--accent-soft);color:var(--accent)}
+table.big th.gh.g-ts{background:var(--amber-soft);color:var(--amber)}
+table.big th.gh.g-dat{background:var(--good-soft);color:var(--good)}
+table.big th.gh.g-pa{background:var(--bad-soft);color:var(--bad)}
+table.big thead tr:nth-child(2) th{top:31px}
+table.big .gl{border-left:2px solid var(--rule-2)}
+table.big tr.top5 td{background:color-mix(in srgb, var(--amber-soft) 45%, var(--panel))}
+table.big tr.top5 td.sticky1{background:color-mix(in srgb, var(--amber-soft) 45%, var(--panel))}
+.heat{border-radius:4px;padding:1px 6px;display:inline-block}
+.mtx td{vertical-align:top;text-align:left;font-family:var(--f-body);white-space:normal;min-width:118px;font-size:12px;line-height:1.3}
+.mtx td .v{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.mtx td.rep{background:color-mix(in srgb, var(--cc) 14%, var(--panel))}
+.mtx td.rep3{background:color-mix(in srgb, var(--cc) 26%, var(--panel))}
+.mtx td.hl{outline:2px solid var(--ink);outline-offset:-2px}
+.mtx th:first-child,.mtx td:first-child{min-width:44px;text-align:center}
+.src{font-size:12px;color:var(--ink-3);border-top:1px dashed var(--rule-2);padding-top:10px}
+.est-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.est{border:1px solid var(--rule);border-radius:10px;background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-left:4px solid var(--cc,var(--s0))}
+.est h4{margin:0;font-family:var(--f-display);font-size:16px}
+.est .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12.5px}
+.est .kv span{color:var(--ink-3)}
+.est p{margin:0;font-size:12.5px;color:var(--ink-2)}
+@media (max-width:640px){ .rev-switch .seg-toggle button{padding:6px 8px;font-size:12px} }
+details.sop{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:0}
+details.sop summary{cursor:pointer;list-style:none;padding:12px 18px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+details.sop summary::-webkit-details-marker{display:none}
+details.sop summary h3{font-size:16px}
+details.sop summary .hint::after{content:"Ocultar"}
+details.sop:not([open]) summary .hint::after{content:"Mostrar"}
+details.sop ol{list-style:none;margin:0;padding:0 18px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px 18px;counter-reset:sop}
+details.sop ol.c3{grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr))}
+details.sop li{counter-increment:sop;position:relative;padding-left:30px;font-size:13px;color:var(--ink-2);line-height:1.45}
+details.sop li::before{content:counter(sop);position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--paper);font:700 11px/20px var(--f-mono);text-align:center}
+details.sop li b{color:var(--ink)}
+details.sop .upd{margin:0 18px 16px;font-size:12.5px;color:var(--ink-2);background:var(--panel-2);border-radius:8px;padding:9px 12px}
+</style>
 
 <header class="top">
   <div class="wrap" style="padding-block:0">
@@ -211,6 +287,15 @@ form.smart textarea{background:var(--panel);border:1px solid var(--rule-2);borde
       <button class="tab" role="tab" data-v="clientes">Ranking clientes</button>
       <button class="tab" role="tab" data-v="planes">Planes SMART</button>
     </nav>
+<div class="top-only" id="top-hdr">
+  <div class="tfilters" id="top-filters">
+    <div class="f"><label for="tp-mes">Mes analizado</label><select id="tp-mes"></select></div>
+    <div class="f"><label>Negocio</label><div class="seg-toggle" id="tp-un"><button data-u="CVZA" aria-pressed="true">Cervezas</button><button data-u="UNG" aria-pressed="false">UNG</button></div></div>
+    <div class="f"><label for="tp-n">Clientes por canal</label><select id="tp-n"><option value="5" selected>Top 5</option><option value="10">Top 10</option><option value="20">Top 20</option></select></div>
+    <div class="hint" id="tp-per" style="padding-bottom:7px"></div>
+  </div>
+</div>
+
   </div>
 </header>
 
@@ -220,6 +305,20 @@ form.smart textarea{background:var(--panel);border:1px solid var(--rule-2);borde
   <!-- RESUMEN -->
   <section class="view" id="v-resumen" hidden>
     <div class="kpis" id="kpis"></div>
+    <details class="sop" open>
+      <summary><h3>Cómo usar este tablero</h3><span class="hint"></span></summary>
+      <ol>
+        <li><b>Elegí el período y los filtros.</b> Arriba: Desde / Hasta, negocio, segmento, canal y tipo de acción. Todas las pestañas usan esos filtros. "Limpiar filtros" vuelve a todo.</li>
+        <li><b>Resumen.</b> TS, $TS/$FACT y $TS/HL del último mes contra el anterior, lectura automática del período y evolutivos. La tabla de abajo es el detalle mes a mes.</li>
+        <li><b>Canal y segmento.</b> Elegí el indicador ($TS/HL, $TS/$FACT, TS $ o HL) y si ves canal › segmento o al revés. Las celdas más oscuras son los valores más altos de la fila.</li>
+        <li><b>Acciones.</b> Mix del gasto por tipo de acción y ranking de acciones. Buscá por nombre o código y tocá una acción para ver sus clientes.</li>
+        <li><b>CMQ vs Distribuidor.</b> Declarado por Zuppa contra lo reconocido por CMQ, y quién pagó cada descentralizada.</li>
+        <li><b>Ranking clientes.</b> Clientes ordenados por gasto y su posición mes a mes. Tocá un cliente para ver el detalle.</li>
+        <li><b>Planes SMART.</b> Convertí cada oportunidad en un plan con indicador, meta, fecha y responsable. Se guarda en el Sheet y lo ve todo el equipo.</li>
+        <li><b>Llevalo a la auditoría.</b> "Copiar para Excel" copia la tabla que estás viendo para pegarla en Excel o Sheets.</li>
+      </ol>
+      <p class="upd"><b>Actualizar datos:</b> cargá las bases en el Sheet de Trade Spend y corré <b>Actualizar tablero</b> desde el menú. En 1 o 2 minutos se ve acá.</p>
+    </details>
     <div class="panel">
       <div class="ph"><h3>Lectura del período</h3><span class="hint" id="read-hint"></span></div>
       <ul class="reading" id="reading"></ul>
@@ -350,6 +449,94 @@ form.smart textarea{background:var(--panel);border:1px solid var(--rule-2);borde
       </div>
     </div>
   </section>
+<div class="top-only" id="top-root">
+  <nav class="tabs" role="tablist" id="tp-tabs" style="border-bottom:1px solid var(--rule);margin-bottom:22px">
+    <button class="tab" role="tab" data-t="resumen" aria-selected="true">Resumen</button>
+    <button class="tab" role="tab" data-t="canal">Detalle por canal</button>
+    <button class="tab" role="tab" data-t="evol">Evolución mensual</button>
+    <button class="tab" role="tab" data-t="pa">PA y topes</button>
+  </nav>
+  <div class="loading" id="tp-loading">Cargando clientes TOP…</div>
+
+  <section class="tview" id="t-resumen" hidden>
+    <div class="kpis" id="tp-kpis"></div>
+    <details class="sop" open>
+      <summary><h3>Cómo usar este tablero</h3><span class="hint"></span></summary>
+      <ol class="c3">
+        <li><b>Elegí el mes, el negocio y el Top.</b> Arriba: mes analizado (el vigente viene marcado "en curso"), Cervezas o UNG, y Top 5, 10 o 20 por canal. Todo el tablero se recalcula.</li>
+        <li><b>Resumen.</b> Indicadores del mes, lectura con alertas y una tarjeta por canal (K+T, AS, REF, MAY). Tocá una tarjeta para abrir su detalle.</li>
+        <li><b>Detalle por canal.</b> La planilla de auditoría: R3 (3 meses previos, sin el actual), mes, MMAA, mix, ranking, TS/FACT, brand distribution, EDF, estándar, SOM y topes. Tocá un cliente para ver su evolución.</li>
+        <li><b>Evolución mensual.</b> Quién estuvo en el Top cada mes. Cuanto más oscura la celda, más meses se repite el cliente.</li>
+        <li><b>PA y topes.</b> Clientes que superan el tope, acción sugerida y plan cargado. Los planes se cargan en las pestañas TOP_PLANES y TOP_ESTRATEGIA del Sheet.</li>
+        <li><b>Llevalo a la auditoría.</b> "Copiar para Excel" copia la tabla que estás viendo para pegarla en Excel o Sheets.</li>
+      </ol>
+      <p class="upd"><b>Actualizar datos:</b> pegá BASE 2026 y BASE 2025 en TOP_BASE_2026 y TOP_BASE_2025, cargá planes y topes, y corré <b>Clientes TOP → Actualizar Clientes TOP</b> en el Sheet. En 1 o 2 minutos se ve acá.</p>
+    </details>
+    <div class="panel"><div class="ph"><h3>Lectura del mes</h3><span class="hint" id="tp-read-h"></span></div><ul class="reading" id="tp-read"></ul></div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h2>Top por canal</h2><p>Tocá una tarjeta para ver el detalle completo del canal.</p></div>
+      <div class="cgrid" id="tp-cards"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><div><h3>Concentración del volumen en el Top</h3><div class="hint">% del HL del canal que compran los clientes del Top, mes a mes</div></div></div><div class="legend" id="tp-lg1"></div><div class="chart"><canvas id="tc-conc"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>$TS / $FACT: Top vs resto del canal</h3><div class="hint">Mes analizado. Si el Top gasta mucho más que el resto, hay concentración del TS</div></div></div><div class="legend"><span><i class="dot" style="background:var(--s7)"></i>Clientes del Top</span><span><i class="dot" style="background:var(--s0)"></i>Resto del canal</span></div><div class="chart"><canvas id="tc-tsf"></canvas></div></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>Qué pide el punto 2.4.1.3 y dónde está</h3></div>
+      <div class="audit">
+        <a href="#top-canal" data-tgo="canal"><span class="ok">✓ Detalle por canal</span><b>Top 5 mensual de CZA y UNG por canal</b><span>AS · K+T · REF · MAY, por razón social</span></a>
+        <a href="#top-canal" data-tgo="canal"><span class="ok">✓ Vol &amp; Mix</span><b>Vol R3, MMAA y mix sobre el total</b><span>R3 = 3 meses previos al mes analizado</span></a>
+        <a href="#top-evol" data-tgo="evol"><span class="ok">✓ TS</span><b>TS / FACT mensual y su evolución</b><span>Por cliente y contra el promedio del canal</span></a>
+        <a href="#top-canal" data-tgo="canal"><span class="ok" id="tp-chk-dat">✓ Datos varios</span><b>Brand distribution, EDF, estándar de ejecución, SOM</b><span id="tp-chk-dat-s">SOM del censo Thomas</span></a>
+        <a href="#top-pa" data-tgo="pa"><span class="ok">✓ PA y topes</span><b>Topes de volumen y plan para desconcentrar el TS</b><span>Acción sugerida + plan cargado en el Sheet</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="tview" id="t-canal" hidden>
+    <div class="sec-h"><h2 id="tc-title">Detalle por canal</h2><p>Mismo formato que la planilla de auditoría. Las filas resaltadas son el Top 5. Tocá un cliente para ver su evolución.</p></div>
+    <div class="toolbar">
+      <div class="f"><label>Canal</label><div class="seg-toggle" id="tc-can"></div></div>
+      <button class="btn sm" id="tc-copy" type="button">Copiar para Excel</button>
+    </div>
+    <div class="tw" style="max-height:none"><table class="big" id="tc-table"></table></div>
+    <div class="hint" id="tc-note"></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><div><h3>Volumen: mes vs mismo mes 2025</h3><div class="hint">HL por cliente del Top</div></div></div><div class="legend"><span><i class="dot" style="background:var(--s1)"></i><span id="tc-lg-a">2026</span></span><span><i class="dot" style="background:var(--s0)"></i><span id="tc-lg-b">2025</span></span></div><div class="chart tall"><canvas id="tc-vol"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>Evolución $TS / $FACT del Top</h3><div class="hint">Enero hasta el mes analizado · línea punteada = promedio del canal</div></div></div><div class="legend" id="tc-lg-ev"></div><div class="chart tall"><canvas id="tc-ev"></canvas></div></div>
+    </div>
+  </section>
+
+  <section class="tview" id="t-evol" hidden>
+    <div class="sec-h"><h2>Evolución mensual del Top</h2><p>Quién estuvo en el Top cada mes, por canal. El sombreado indica cuántos meses se repite el cliente en el Top: cuanto más oscuro, más fijo es.</p></div>
+    <div class="toolbar"><div class="f"><label>Canal</label><div class="seg-toggle" id="te-can"></div></div><button class="btn sm" id="te-copy" type="button">Copiar para Excel</button></div>
+    <div class="tw" style="max-height:none"><table class="mtx" id="te-mtx"></table></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><div><h3>Clientes que más se repiten</h3><div class="hint">Meses dentro del Top, de enero al mes analizado</div></div></div><div class="tw" style="max-height:420px"><table id="te-perm"></table></div></div>
+      <div class="panel"><div class="ph"><div><h3>Indicadores del canal mes a mes</h3><div class="hint">Top vs total del canal</div></div></div><div class="tw" style="max-height:420px"><table id="te-mes"></table></div></div>
+    </div>
+    <div class="panel"><div class="ph"><div><h3>$TS / $FACT mensual: Top vs canal</h3><div class="hint">Evolución del gasto sobre facturación</div></div></div><div class="legend"><span><i class="dot" style="background:var(--s7)"></i>Clientes del Top</span><span><i class="dot" style="background:var(--s0)"></i>Total canal</span></div><div class="chart"><canvas id="te-ch"></canvas></div></div>
+  </section>
+
+  <section class="tview" id="t-pa" hidden>
+    <div class="sec-h"><h2>Plan de acción y topes de volumen</h2><p>El tope es el volumen mensual por cliente a partir del cual conviene desconcentrar el Trade Spend. Si el cliente lo supera, la acción sugerida es DESCONCENTRAR; si no, MANTENER.</p></div>
+    <div class="kpis" id="pa-kpis"></div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h3>Clientes del Top frente al tope</h3><button class="btn sm" id="pa-copy" type="button">Copiar para Excel</button></div>
+      <div class="tw"><table id="pa-table"></table></div>
+    </div>
+    <div>
+      <div class="sec-h" style="margin-bottom:10px"><h3>Estrategia por canal</h3><span class="hint">Pestaña TOP_ESTRATEGIA del Sheet</span></div>
+      <div class="est-grid" id="pa-est"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>Topes configurados</h3><span class="hint">Pestaña TOP_TOPES del Sheet · HL por cliente por mes</span></div>
+      <div class="tw" style="max-height:none"><table id="pa-topes"></table></div>
+      <p class="src" style="margin:10px 0 0">Para cargar el plan de un cliente (acción definida, autorización del EDV y comentario) usá la pestaña <b>TOP_PLANES</b> y después <b>Actualizar Clientes TOP</b> desde el menú del Sheet.</p>
+    </div>
+  </section>
+</div>
+
 </main>
 
 <div class="drawer" id="drawer" hidden><div class="in" id="drawer-in"></div></div>
@@ -463,7 +650,7 @@ function initTabs(){
 function show(v){
   S.tab = v; document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
   document.querySelectorAll('.view').forEach(s=>s.hidden = s.id !== 'v-'+v);
-  try{ history.replaceState(null,'','#'+v); }catch(e){}
+  if(!document.body.classList.contains('mode-top')){ try{ history.replaceState(null,'','#'+v); }catch(e){} }
   render();
 }
 function render(){ if(!S) return; ({resumen:rResumen, canal:rCanal, acciones:rAcciones, cmq:rCmq, clientes:rClientes, planes:()=>Plans.render()})[S.tab](); }
@@ -851,5 +1038,316 @@ const Plans = {
 boot();
 })();
 </script>
+<script>
+/* ===== 2.4.1.3 Clientes TOP por volumen · bloque REVENUE ===== */
+(function(){
+'use strict';
+const H0 = (location.hash||'').replace('#','');
+let T = null, loaded = false, CHT = {};
+const ST = { tab:'resumen', m:null, un:'CVZA', n:5, can:'K+T', ecan:'K+T' };
+const CAN = ['K+T','AS','REF','MAY'];
+const CAN_LBL = {'K+T':'Kioscos y tradicional (K+T)','AS':'Autoservicios (AS)','REF':'Refrigerado (REF)','MAY':'Mayoristas (MAY)'};
+const CAN_COL = {'K+T':'--s1','REF':'--s2','AS':'--s3','MAY':'--s4'};
+const UN_LBL = {CVZA:'Cervezas', UNG:'UNG'};
+const MES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MES_L = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const $ = s => document.querySelector(s);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf = d => new Intl.NumberFormat('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const NF0=nf(0), NF1=nf(1);
+const hl = v => v==null||!isFinite(v) ? '—' : NF1.format(v);
+const money = v => v==null||!isFinite(v) ? '—' : '$ '+NF0.format(v);
+const mill = v => v==null||!isFinite(v) ? '—' : '$ '+NF1.format(v/1e6)+' M';
+const pct = (v,d=1) => v==null||!isFinite(v) ? '—' : nf(d).format(v*100)+' %';
+const div = (a,b) => b ? a/b : null;
+const ml = m => { const [y,mm]=m.split('/'); return MES_ES[+mm-1]+' '+y.slice(2); };
+const mL = m => { const [y,mm]=m.split('/'); return MES_L[+mm-1]+' '+y; };
+const sum = a => a.reduce((x,y)=>x+(y||0),0);
+function hexA(hex,a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function toast(t){ const el=document.createElement('div'); el.className='toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
+function copyText(txt){ const done=()=>toast('Copiado. Pegalo en Excel o Sheets.'); const fb=()=>{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){toast('Seleccioná y copiá manualmente');} ta.remove(); }; try{ navigator.clipboard.writeText(txt).then(done,fb); }catch(e){ fb(); } }
+function tableTSV(sel){ return [...document.querySelectorAll(sel+' tr')].map(tr=>[...tr.children].map(td=>{ const n=+(td.getAttribute('colspan')||1); return td.innerText.replace(/\s+/g,' ').trim() + '\t'.repeat(n-1); }).join('\t')).join('\n'); }
+
+/* ---------- modo: Trade Spend ⇄ Clientes TOP ---------- */
+function injectSwitch(){
+  const brand = document.querySelector('.top .brand'); if(!brand) return;
+  const sw = document.createElement('div'); sw.className='rev-switch';
+  sw.innerHTML = `<span class="eyebrow">REVENUE</span><div class="seg-toggle" id="rev-sw" role="tablist"><button data-r="ts" aria-pressed="true"><span class="cd">2.4.1.1</span>Trade Spend</button><button data-r="top" aria-pressed="false"><span class="cd">2.4.1.3</span>Clientes TOP</button></div>`;
+  brand.parentNode.insertBefore(sw, brand);
+  const hdr = $('#top-hdr'); const tabs = $('#tabs'); tabs.parentNode.insertBefore(hdr, tabs.nextSibling);
+  sw.addEventListener('click', e=>{ const b=e.target.closest('button[data-r]'); if(b) setMode(b.dataset.r); });
+}
+let tsTitle = null;
+function setMode(r){
+  const top = r==='top';
+  document.body.classList.toggle('mode-top', top);
+  document.querySelectorAll('#rev-sw button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.r===r));
+  const h1 = document.querySelector('.brand h1');
+  if(tsTitle==null) tsTitle = h1.innerHTML;
+  h1.innerHTML = top ? '<span class="code">2.4.1.3</span>Clientes TOP por volumen' : tsTitle;
+  if(top){ load().then(()=>showT(ST.tab)); }
+  else { const sel=document.querySelector('#tabs .tab[aria-selected="true"]'); try{ history.replaceState(null,'','#'+(sel?sel.dataset.v:'resumen')); }catch(e){} window.dispatchEvent(new Event('resize')); }
+}
+
+/* ---------- datos ---------- */
+async function load(){
+  if(loaded) return;
+  try{
+    if(window.TOP_DATA) T = window.TOP_DATA;
+    else { const r = await fetch('top.json',{cache:'no-store'}); if(!r.ok) throw new Error(r.status); T = await r.json(); }
+  }catch(e){ $('#tp-loading').textContent='No se pudo cargar top.json. Corré "Actualizar Clientes TOP" desde el menú del Sheet.'; return; }
+  loaded = true;
+  T.M = T.meta.meses; T.MI = {}; T.M.forEach((m,i)=>T.MI[m]=i);
+  T.meses26 = T.M.filter(m=>m.slice(0,4)===T.meta.mesActual.slice(0,4));
+  ST.m = T.MI[T.meta.mesActual];
+  T.planIdx = {}; (T.planes||[]).forEach(p=>{ T.planIdx[p.mes+'|'+p.un+'|'+p.cod] = p; });
+  $('#tp-mes').innerHTML = T.meses26.slice().reverse().map(m=>`<option value="${T.MI[m]}"${T.MI[m]===ST.m?' selected':''}>${mL(m)}${m===T.meta.mesActual?' (en curso)':''}</option>`).join('');
+  const canBtns = id => CAN.map(c=>`<button data-c="${c}" aria-pressed="${c==='K+T'}">${c}</button>`).join('');
+  $('#tc-can').innerHTML = canBtns(); $('#te-can').innerHTML = canBtns();
+  $('#tp-loading').hidden = true;
+  if(!T.meta.estandar){ $('#tp-chk-dat').textContent='✓ Datos varios · estándar pendiente'; $('#tp-chk-dat').style.color='var(--amber)'; $('#tp-chk-dat-s').textContent='El estándar de ejecución todavía no está cargado en el Sheet'; }
+  document.querySelectorAll('#tp-tabs .tab').forEach(b=>b.addEventListener('click',()=>showT(b.dataset.t)));
+  document.querySelectorAll('[data-tgo]').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); showT(a.dataset.tgo); scrollTo({top:0}); }));
+  $('#tp-mes').addEventListener('change',e=>{ ST.m=+e.target.value; renderT(); });
+  $('#tp-n').addEventListener('change',e=>{ ST.n=+e.target.value; renderT(); });
+  tog('#tp-un','u',v=>{ ST.un=v; renderT(); });
+  tog('#tc-can','c',v=>{ ST.can=v; renderT(); });
+  tog('#te-can','c',v=>{ ST.ecan=v; renderT(); });
+  $('#tp-cards').addEventListener('click',e=>{ const c=e.target.closest('.ccard'); if(!c) return; ST.can=c.dataset.c; setPressed('#tc-can','c',ST.can); showT('canal'); scrollTo({top:0}); });
+  $('#tc-table').addEventListener('click',e=>{ const tr=e.target.closest('tr[data-ci]'); if(tr) detail(+tr.dataset.ci); });
+  $('#pa-table').addEventListener('click',e=>{ const tr=e.target.closest('tr[data-ci]'); if(tr) detail(+tr.dataset.ci); });
+  $('#tc-copy').addEventListener('click',()=>copyText(tableTSV('#tc-table')));
+  $('#te-copy').addEventListener('click',()=>copyText(tableTSV('#te-mtx')));
+  $('#pa-copy').addEventListener('click',()=>copyText(tableTSV('#pa-table')));
+  const mq=matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener && mq.addEventListener('change',()=>renderT());
+  new MutationObserver(()=>renderT()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+}
+function tog(sel,attr,cb){ $(sel).addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; setPressed(sel,attr,b.dataset[attr]); cb(b.dataset[attr]); }); }
+function setPressed(sel,attr,v){ document.querySelectorAll(sel+' button').forEach(x=>x.setAttribute('aria-pressed', x.dataset[attr]===v)); }
+
+/* ---------- cálculo ---------- */
+function totC(un,c,m){ const t=T.tot[un][c]; return {hl:t.hl[m]||0, fact:t.fact[m]||0, ts:t.ts[m]||0}; }
+function ser(un,ci){ return T.ser[un][ci]; }
+/* ranking de un canal en un mes: [{ci, vol}] ordenado */
+function rankCan(un,c,m){
+  const out=[]; const S=T.ser[un];
+  for(const k in S){ const ci=+k; if(T.cli[ci][2]!==c) continue; const v=S[k][0][m]; if(v>0) out.push({ci, vol:v}); }
+  out.sort((a,b)=>b.vol-a.vol || a.ci-b.ci); return out;
+}
+function row(un,c,m,ci,rank){
+  const s=ser(un,ci), cl=T.cli[ci], tc=totC(un,c,m), ta=totC(un,'ALL',m);
+  const r3i=[m-3,m-2,m-1].filter(i=>i>=0);
+  const vol=s[0][m], mmaa = m-12>=0 ? s[0][m-12] : null;
+  const fact=s[1][m], ts=s[2][m];
+  const r3f=sum(r3i.map(i=>s[1][i])), r3t=sum(r3i.map(i=>s[2][i]));
+  const tope = ((T.meta.topes||{})[un]||{})[c];
+  const plan = T.planIdx[T.M[m]+'|'+un+'|'+cl[0]] || null;
+  const est = (T.estandar||{})[cl[0]];
+  return { ci, cod:cl[0], nom:cl[1], pv:cl[3], vis:cl[4], sup:cl[5], rank,
+    r3:r3i.map(i=>s[0][i]), r3t:sum(r3i.map(i=>s[0][i])), vol, mmaa, var: mmaa>0 ? vol/mmaa-1 : null,
+    mixC:div(vol,tc.hl), mixT:div(vol,ta.hl), fact, ts, tsf:div(ts,fact), tsfR3:div(r3t,r3f), tsfCan:div(tc.ts,tc.fact),
+    bd: un==='CVZA' ? cl[9] : cl[10], edfU:cl[7], edfC:cl[8], som:cl[6], est: est==null?null:est,
+    tope, varT: tope!=null ? tope-vol : null, acc: tope!=null ? (vol>tope?'DESCONCENTRAR':'MANTENER') : null, plan };
+}
+function topRows(un,c,m,n){ return rankCan(un,c,m).slice(0,n).map((x,i)=>row(un,c,m,x.ci,i+1)); }
+function canStats(un,c,m,n){
+  const rows=topRows(un,c,m,n), tc=totC(un,c,m);
+  const th=sum(rows.map(r=>r.vol)), tf=sum(rows.map(r=>r.fact)), tt=sum(rows.map(r=>r.ts));
+  const mm = m-12>=0 ? totC(un,c,m-12).hl : null;
+  return { rows, tot:tc, top:{hl:th,fact:tf,ts:tt}, conc:div(th,tc.hl), concTs:div(tt,tc.ts), tsfTop:div(tt,tf), tsfCan:div(tc.ts,tc.fact),
+    tsfRest:div(tc.ts-tt, tc.fact-tf), varCan: mm ? tc.hl/mm-1 : null };
+}
+function tsfFlag(v,ref){ if(v==null||ref==null) return '<span class="flag nd">s/d</span>'; const r=v/ref; if(r>=1.25) return `<span class="flag hi" title="${pct(r-1,0)} sobre el promedio del canal">▲ ${pct(v)}</span>`; if(r<=0.75) return `<span class="flag lo" title="Debajo del promedio del canal">▼ ${pct(v)}</span>`; return `<span class="flag mid">${pct(v)}</span>`; }
+function varFmt(r){ if(r.mmaa==null) return '—'; if(!(r.mmaa>0)) return r.vol>0?'<span class="flag new">Nuevo</span>':'—'; const c=r.var>=0?'pos':'neg'; return `<span class="${c}">${r.var>=0?'+':''}${pct(r.var,0)}</span>`; }
+function accFlag(a){ return a==null?'—':a==='DESCONCENTRAR'?'<span class="flag des">DESCONCENTRAR</span>':'<span class="flag man">MANTENER</span>'; }
+function nd(v,f){ return v==null||v===''?'<span class="flag nd">Sin dato</span>':(f?f(v):esc(v)); }
+
+/* ---------- vistas ---------- */
+function showT(t){
+  ST.tab=t; document.querySelectorAll('#tp-tabs .tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.t===t));
+  document.querySelectorAll('#top-root .tview').forEach(s=>s.hidden = s.id!=='t-'+t);
+  try{ history.replaceState(null,'','#top-'+t); }catch(e){}
+  renderT();
+}
+function renderT(){
+  if(!loaded || !document.body.classList.contains('mode-top')) return;
+  const m=ST.m, cur=T.M[m];
+  const r3=[m-3,m-2,m-1].filter(i=>i>=0).map(i=>ml(T.M[i]));
+  $('#tp-per').innerHTML = `R3: ${r3.join(', ')} · MMAA: ${m-12>=0?mL(T.M[m-12]):'—'}${cur===T.meta.mesActual?' <span class="tp-badge">mes en curso · datos al '+esc(T.meta.generado)+'</span>':''}`;
+  ({resumen:rRes, canal:rCan, evol:rEvol, pa:rPA})[ST.tab]();
+}
+
+function rRes(){
+  const m=ST.m, un=ST.un, n=ST.n;
+  const st={}; CAN.forEach(c=>st[c]=canStats(un,c,m,n));
+  const all=totC(un,'ALL',m), allMM = m-12>=0 ? totC(un,'ALL',m-12) : null;
+  const topHl=sum(CAN.map(c=>st[c].top.hl)), topTs=sum(CAN.map(c=>st[c].top.ts)), topF=sum(CAN.map(c=>st[c].top.fact));
+  const rows=[].concat(...CAN.map(c=>st[c].rows.map(r=>Object.assign({can:c},r))));
+  const hi=rows.filter(r=>r.tsf!=null && r.tsfCan && r.tsf/r.tsfCan>=1.25);
+  const down=rows.filter(r=>r.var!=null && r.var<0);
+  const des=rows.filter(r=>r.acc==='DESCONCENTRAR');
+  const vAll = allMM && allMM.hl ? all.hl/allMM.hl-1 : null;
+  $('#tp-kpis').innerHTML = [
+    ['HL '+UN_LBL[un]+' · '+ml(T.M[m]), hl(all.hl), vAll==null?'':`<span class="${vAll>=0?'pos':'neg'}">${vAll>=0?'+':''}${pct(vAll,0)}</span> vs MMAA`],
+    ['HL del Top '+n+' (4 canales)', hl(topHl), pct(div(topHl,all.hl))+' del total'],
+    ['TS del Top '+n, mill(topTs), pct(div(topTs,all.ts))+' del TS total'],
+    ['$TS / $FACT Top '+n, pct(div(topTs,topF)), 'Total '+UN_LBL[un]+': '+pct(div(all.ts,all.fact))],
+    ['Clientes Top con TS/FACT alto', hi.length+' de '+rows.length, '≥ 25 % sobre su canal'],
+    ['Clientes Top que caen vs MMAA', down.length+' de '+rows.length, des.length+' superan el tope'],
+  ].map(([l,v,d])=>`<div class="kpi"><div class="lb">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+  // lectura
+  const li=[];
+  const cMax=CAN.slice().sort((a,b)=>(st[b].conc||0)-(st[a].conc||0))[0];
+  li.push(['', `En <b>${cMax}</b> el Top ${n} concentra el <b>${pct(st[cMax].conc)}</b> del volumen del canal (${hl(st[cMax].top.hl)} HL de ${hl(st[cMax].tot.hl)}).`]);
+  CAN.forEach(c=>{ const s=st[c]; if(s.tsfTop!=null && s.tsfRest!=null && s.tsfTop > s.tsfRest*1.2) li.push(['b', `${c}: el Top ${n} tiene un $TS/$FACT de <b>${pct(s.tsfTop)}</b> contra <b>${pct(s.tsfRest)}</b> del resto del canal. Revisar si el volumen responde al gasto comercial.`]); });
+  hi.slice().sort((a,b)=>b.tsf/b.tsfCan-a.tsf/a.tsfCan).slice(0,3).forEach(r=>li.push(['b', `<b>${esc(r.nom)}</b> (${r.can}) invierte ${pct(r.tsf)} de TS sobre su facturación, ${pct(r.tsf/r.tsfCan-1,0)} por encima del promedio de su canal.`]));
+  down.slice().sort((a,b)=>a.var-b.var).slice(0,2).forEach(r=>li.push(['b', `<b>${esc(r.nom)}</b> (${r.can}) compró ${hl(r.vol)} HL, ${pct(-r.var,0)} menos que en ${ml(T.M[m-12])}.`]));
+  const ups=rows.filter(r=>r.var!=null&&r.var>0.3).sort((a,b)=>b.var-a.var).slice(0,2);
+  ups.forEach(r=>li.push(['g', r.var>3 ? `<b>${esc(r.nom)}</b> (${r.can}) pasa de ${hl(r.mmaa)} HL en ${ml(T.M[m-12])} a ${hl(r.vol)} HL.` : `<b>${esc(r.nom)}</b> (${r.can}) crece ${pct(r.var,0)} contra el mismo mes del año anterior.`]));
+  if(T.M[m]===T.meta.mesActual) li.push(['', 'El mes analizado está en curso: la comparación contra el mismo mes del año anterior se va a completar al cierre.']);
+  $('#tp-read').innerHTML = li.map(([c,t])=>`<li class="${c}">${t}</li>`).join('');
+  $('#tp-read-h').textContent = mL(T.M[m])+' · '+UN_LBL[un];
+  // tarjetas
+  $('#tp-cards').innerHTML = CAN.map(c=>{ const s=st[c];
+    return `<div class="ccard" data-c="${c}" style="--cc:var(${CAN_COL[c]})" role="button" tabindex="0">
+      <div class="hd"><h3>${c}</h3><span class="tot">${hl(s.tot.hl)} HL canal ${s.varCan==null?'':`· <span class="${s.varCan>=0?'pos':'neg'}">${s.varCan>=0?'+':''}${pct(s.varCan,0)}</span> MMAA`}</span></div>
+      <div class="conc"><div class="lbl"><span>Concentración Top ${n}</span><b>${pct(s.conc)}</b></div><div class="meter"><i style="width:${Math.min(100,(s.conc||0)*100)}%"></i></div>
+      <div class="lbl"><span>$TS/$FACT Top vs canal</span><b>${pct(s.tsfTop)} / ${pct(s.tsfCan)}</b></div></div>
+      <div class="mw"><table class="mini"><thead><tr><th class="l">#</th><th class="l">Cliente</th><th>HL</th><th>Mix</th><th>MMAA</th><th>TS/FACT</th></tr></thead><tbody>
+      ${s.rows.slice(0,5).map(r=>`<tr><td class="l"><span class="rk${r.rank===1?' r1':''}">${r.rank}</span></td><td class="l" title="${esc(r.nom)}">${esc(r.nom)}</td><td>${hl(r.vol)}</td><td>${pct(r.mixC,0)}</td><td>${varFmt(r)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin ventas</td></tr>'}
+      </tbody></table></div></div>`; }).join('');
+  // gráficos
+  const ms=T.meses26.map(x=>T.MI[x]).filter(i=>i<=m);
+  $('#tp-lg1').innerHTML = CAN.map(c=>`<span><i class="dot" style="background:var(${CAN_COL[c]})"></i>${c}</span>`).join('');
+  draw('tc-conc',{type:'line', data:{labels:ms.map(i=>ml(T.M[i])), datasets:CAN.map(c=>lineDS(c, ms.map(i=>canStats(un,c,i,n).conc), CAN_COL[c]))}, options:opts(v=>pct(v,0),{tip:v=>pct(v)})});
+  draw('tc-tsf',{type:'bar', data:{labels:CAN, datasets:[barDS('Clientes del Top', CAN.map(c=>st[c].tsfTop),'--s7'), barDS('Resto del canal', CAN.map(c=>st[c].tsfRest),'--s0')]}, options:opts(v=>pct(v,0),{tip:v=>pct(v)})});
+}
+
+function rCan(){
+  const m=ST.m, un=ST.un, c=ST.can, n=Math.max(ST.n,5);
+  const s=canStats(un,c,m,n), rows=s.rows, M=T.M;
+  $('#tc-title').innerHTML = `${esc(CAN_LBL[c])} · ${UN_LBL[un]} · ${mL(M[m])}`;
+  const r3h=[m-3,m-2,m-1].filter(i=>i>=0).map(i=>`<th>${MES_ES[+M[i].slice(5)-1]}</th>`).join('');
+  const nR3=[m-3,m-2,m-1].filter(i=>i>=0).length;
+  const head = `<thead><tr><th class="l sticky1" colspan="1"></th><th class="l" colspan="3">${esc(c)} · ${UN_LBL[un]}</th>
+    <th class="gh g-vol" colspan="${nR3+7}">VOLUMEN Y MIX (HL)</th><th class="gh g-ts" colspan="5">TRADE SPEND</th><th class="gh g-dat" colspan="5">DATOS VARIOS</th><th class="gh g-pa" colspan="6">PLAN DE ACCIÓN / TOPES</th></tr>
+    <tr><th class="l sticky1">Razón social</th><th class="l">Código</th><th class="l">Promotor</th><th class="l">Visita</th>
+    ${r3h.replace('<th>','<th class="gl">')}<th>R3 total</th><th>${MES_ES[+M[m].slice(5)-1]} 26</th><th>${m-12>=0?MES_ES[+M[m-12].slice(5)-1]+' 25':'MMAA'}</th><th>Var MMAA</th><th>Mix canal</th><th>Mix total</th><th>Ranking</th>
+    <th class="gl">Fact. neta</th><th>Trade spend</th><th>TS / FACT</th><th>TS/FACT R3</th><th>TS/FACT canal</th>
+    <th class="gl">Brand distr. (SKUs)</th><th>EDF UNG</th><th>EDF CVZA</th><th>Estándar ejec.</th><th>SOM Thomas</th>
+    <th class="gl">Obj. tope</th><th>Real</th><th>Var</th><th>Acción</th><th>EDV</th><th class="l">Comentario</th></tr></thead>`;
+  const body = rows.map(r=>`<tr class="click${r.rank<=5?' top5':''}" data-ci="${r.ci}">
+    <td class="l sticky1"><span class="rk${r.rank===1?' r1':''}">${r.rank}</span> ${esc(r.nom)}</td><td class="l">${r.cod}</td><td class="l">${nd(r.pv)}</td><td class="l">${nd(r.vis)}</td>
+    ${r.r3.map((v,i)=>`<td${i===0?' class="gl"':''}>${hl(v)}</td>`).join('')}<td>${hl(r.r3t)}</td><td><b>${hl(r.vol)}</b></td><td>${r.mmaa==null?'—':hl(r.mmaa)}</td><td>${varFmt(r)}</td>
+    <td>${pct(r.mixC)}</td><td>${pct(r.mixT,2)}</td><td>${r.rank}</td>
+    <td class="gl">${money(r.fact)}</td><td>${money(r.ts)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td><td>${pct(r.tsfR3)}</td><td>${pct(r.tsfCan)}</td>
+    <td class="gl">${nd(r.bd)}</td><td>${r.edfU||0}</td><td>${r.edfC||0}</td><td>${nd(r.est, v=>typeof v==='number'?pct(v,0):esc(v))}</td><td>${nd(r.som, v=>pct(v,0))}</td>
+    <td class="gl">${r.tope==null?'—':hl(r.tope)}</td><td>${hl(r.vol)}</td><td class="${r.varT<0?'neg':'pos'}">${r.varT==null?'—':hl(r.varT)}</td><td>${r.plan&&r.plan.accion?accFlag(r.plan.accion.toUpperCase().includes('DESC')?'DESCONCENTRAR':'MANTENER'):accFlag(r.acc)}</td>
+    <td>${r.plan&&r.plan.edv?esc(r.plan.edv):'<span class="flag nd">Pendiente</span>'}</td><td class="l wr">${r.plan&&r.plan.comentario?esc(r.plan.comentario):''}</td></tr>`).join('');
+  const t5=rows.slice(0,5), sT=k=>sum(t5.map(r=>r[k]));
+  const f5=sT('fact'), s5=sT('ts'), r5=[0,1,2].slice(0,nR3).map(i=>sum(t5.map(r=>r.r3[i]))), mm5=sum(t5.map(r=>r.mmaa||0));
+  const tc=s.tot, tcMM = m-12>=0 ? totC(un,c,m-12).hl : null;
+  const r3c=[m-3,m-2,m-1].filter(i=>i>=0).map(i=>totC(un,c,i).hl);
+  const tot = `<tr class="tot"><td class="l sticky1">Total Top 5</td><td></td><td></td><td></td>${r5.map((v,i)=>`<td${i===0?' class="gl"':''}>${hl(v)}</td>`).join('')}<td>${hl(sum(r5))}</td><td>${hl(sT('vol'))}</td><td>${hl(mm5)}</td><td>${mm5?pct(sT('vol')/mm5-1,0):'—'}</td><td>${pct(div(sT('vol'),tc.hl))}</td><td>${pct(div(sT('vol'),totC(un,'ALL',m).hl),2)}</td><td></td><td class="gl">${money(f5)}</td><td>${money(s5)}</td><td>${pct(div(s5,f5))}</td><td></td><td></td><td class="gl" colspan="5"></td><td class="gl" colspan="6"></td></tr>
+  <tr class="tot"><td class="l sticky1">Total canal ${esc(c)}</td><td></td><td></td><td></td>${r3c.map((v,i)=>`<td${i===0?' class="gl"':''}>${hl(v)}</td>`).join('')}<td>${hl(sum(r3c))}</td><td>${hl(tc.hl)}</td><td>${tcMM==null?'—':hl(tcMM)}</td><td>${tcMM?pct(tc.hl/tcMM-1,0):'—'}</td><td>100 %</td><td>${pct(div(tc.hl,totC(un,'ALL',m).hl),1)}</td><td></td><td class="gl">${money(tc.fact)}</td><td>${money(tc.ts)}</td><td>${pct(div(tc.ts,tc.fact))}</td><td></td><td></td><td class="gl" colspan="5"></td><td class="gl" colspan="6"></td></tr>`;
+  $('#tc-table').innerHTML = head + '<tbody>'+(body||'<tr><td class="empty" colspan="30">Sin ventas en el mes</td></tr>')+tot+'</tbody>';
+  $('#tc-note').innerHTML = `Mix canal = HL del cliente ÷ HL total ${UN_LBL[un]} del canal en el mes. Mix total = ÷ HL total ${UN_LBL[un]} de la distribuidora. TS/FACT en rojo: 25 % o más sobre el promedio del canal; en verde: 25 % o más debajo. Brand distribution = SKUs distintos comprados (foto ${esc(T.meta.bdMes||T.meta.mesActual)}).`;
+  // gráficos
+  const t=rows.slice(0,Math.min(n,10));
+  $('#tc-lg-a').textContent = ml(M[m]); $('#tc-lg-b').textContent = m-12>=0?ml(M[m-12]):'MMAA';
+  draw('tc-vol',{type:'bar', data:{labels:t.map(r=>short(r.nom)), datasets:[barDS(ml(M[m]), t.map(r=>r.vol),'--s1'), barDS('MMAA', t.map(r=>r.mmaa||0),'--s0')]}, options:opts(v=>NF0.format(v)+' HL',{horizontal:true,tip:v=>hl(v)+' HL'})});
+  const ms=T.meses26.map(x=>T.MI[x]).filter(i=>i<=m), t5c=rows.slice(0,5);
+  const cols=['--s1','--s2','--s3','--s4','--s5'];
+  $('#tc-lg-ev').innerHTML = t5c.map((r,i)=>`<span><i class="dot" style="background:var(${cols[i]})"></i>${esc(short(r.nom))}</span>`).join('') + '<span><i class="dot" style="background:var(--ink-3)"></i>Promedio canal</span>';
+  draw('tc-ev',{type:'line', data:{labels:ms.map(i=>ml(M[i])), datasets: t5c.map((r,i)=>lineDS(short(r.nom), ms.map(j=>{ const x=ser(un,r.ci); return div(x[2][j],x[1][j]); }), cols[i])).concat([lineDS('Promedio canal', ms.map(j=>{ const x=totC(un,c,j); return div(x.ts,x.fact); }), '--ink-3', {borderDash:[5,4], pointRadius:0})])}, options:opts(v=>pct(v,0),{tip:v=>pct(v)})});
+}
+const short = s => { s=String(s||'').replace(/\s+/g,' ').trim(); return s.length>22 ? s.slice(0,21)+'…' : s; };
+
+function rEvol(){
+  const m=ST.m, un=ST.un, c=ST.ecan, n=ST.n, M=T.M;
+  const ms=T.meses26.map(x=>T.MI[x]).filter(i=>i<=m);
+  const tops=ms.map(i=>rankCan(un,c,i).slice(0,n));
+  const cnt={}; tops.forEach(l=>l.forEach(x=>{ cnt[x.ci]=(cnt[x.ci]||0)+1; }));
+  const cc=`var(${CAN_COL[c]})`;
+  let h=`<thead><tr><th>#</th>${ms.map(i=>`<th class="l">${mL(M[i])}</th>`).join('')}</tr></thead><tbody>`;
+  for(let k=0;k<n;k++){
+    h+=`<tr><td class="l"><span class="rk${k===0?' r1':''}">${k+1}</span></td>`+ms.map((i,j)=>{ const x=tops[j][k]; if(!x) return '<td></td>'; const r=cnt[x.ci]; const cls=r>=Math.max(3,Math.ceil(ms.length/2))?'rep3':r>1?'rep':''; return `<td class="${cls}${i===m?' hl':''}" style="--cc:${cc}" title="${r} ${r===1?'mes':'meses'} en el Top">${esc(T.cli[x.ci][1])}<div class="v">${hl(x.vol)} HL · ${r}/${ms.length}</div></td>`; }).join('')+'</tr>';
+  }
+  $('#te-mtx').innerHTML = h+'</tbody>';
+  // permanencia
+  const perm=Object.keys(cnt).map(k=>{ const ci=+k, s=ser(un,ci); const f=sum(ms.map(i=>s[1][i])), t=sum(ms.map(i=>s[2][i])); const rk=ms.map((i,j)=>{ const p=tops[j].findIndex(x=>x.ci===ci); return p<0?null:p+1; }).filter(x=>x); return {ci, n:cnt[ci], hl:sum(ms.map(i=>s[0][i])), tsf:div(t,f), rk: sum(rk)/rk.length}; }).sort((a,b)=>b.n-a.n||b.hl-a.hl);
+  const tcAcc = (()=>{ const f=sum(ms.map(i=>totC(un,c,i).fact)), t=sum(ms.map(i=>totC(un,c,i).ts)); return div(t,f); })();
+  $('#te-perm').innerHTML = `<thead><tr><th class="l">Cliente</th><th>Meses en Top</th><th>Posición prom.</th><th>HL acumulado</th><th>TS/FACT acum.</th></tr></thead><tbody>`+perm.map(p=>`<tr><td class="l">${esc(T.cli[p.ci][1])}</td><td>${p.n} / ${ms.length}</td><td>${NF1.format(p.rk)}</td><td>${hl(p.hl)}</td><td>${tsfFlag(p.tsf,tcAcc)}</td></tr>`).join('')+'</tbody>';
+  // indicadores por mes
+  const st=ms.map(i=>canStats(un,c,i,n));
+  $('#te-mes').innerHTML = `<thead><tr><th class="l">Mes</th><th>HL canal</th><th>Var MMAA</th><th>HL Top ${n}</th><th>Concentr.</th><th>TS/FACT Top</th><th>TS/FACT canal</th></tr></thead><tbody>`+st.map((s,j)=>`<tr><td class="l">${mL(M[ms[j]])}</td><td>${hl(s.tot.hl)}</td><td>${s.varCan==null?'—':`<span class="${s.varCan>=0?'pos':'neg'}">${s.varCan>=0?'+':''}${pct(s.varCan,0)}</span>`}</td><td>${hl(s.top.hl)}</td><td>${pct(s.conc)}</td><td>${tsfFlag(s.tsfTop,s.tsfCan)}</td><td>${pct(s.tsfCan)}</td></tr>`).join('')+'</tbody>';
+  draw('te-ch',{type:'line', data:{labels:ms.map(i=>ml(M[i])), datasets:[lineDS('Clientes del Top', st.map(s=>s.tsfTop),'--s7'), lineDS('Total canal', st.map(s=>s.tsfCan),'--s0')]}, options:opts(v=>pct(v,0),{tip:v=>pct(v)})});
+}
+
+function rPA(){
+  const m=ST.m, un=ST.un, n=ST.n;
+  const rows=[].concat(...CAN.map(c=>topRows(un,c,m,n).map(r=>Object.assign({can:c},r))));
+  const des=rows.filter(r=>r.acc==='DESCONCENTRAR'), withPlan=rows.filter(r=>r.plan), aut=rows.filter(r=>r.plan&&r.plan.edv);
+  const exc=sum(des.map(r=>-r.varT));
+  $('#pa-kpis').innerHTML = [
+    ['Clientes Top sobre el tope', des.length+' de '+rows.length, 'Acción sugerida: desconcentrar'],
+    ['HL por encima del tope', hl(exc), 'Volumen a redistribuir en otros clientes'],
+    ['TS de esos clientes', mill(sum(des.map(r=>r.ts))), pct(div(sum(des.map(r=>r.ts)),totC(un,'ALL',m).ts))+' del TS '+UN_LBL[un]],
+    ['Planes cargados', withPlan.length+' de '+rows.length, aut.length+' autorizados por EDV'],
+  ].map(([l,v,d])=>`<div class="kpi"><div class="lb">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+  $('#pa-table').innerHTML = `<thead><tr><th class="l">Canal</th><th class="l">#</th><th class="l">Cliente</th><th class="l">Promotor</th><th>HL mes</th><th>Obj. tope</th><th>Var</th><th>TS / FACT</th><th>Acción sugerida</th><th>Acción definida</th><th>EDV</th><th class="l">Comentario</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr class="click" data-ci="${r.ci}"><td class="l"><i class="dot" style="background:var(${CAN_COL[r.can]})"></i> ${r.can}</td><td class="l">${r.rank}</td><td class="l">${esc(r.nom)}</td><td class="l">${nd(r.pv)}</td><td>${hl(r.vol)}</td><td>${r.tope==null?'—':hl(r.tope)}</td><td class="${r.varT<0?'neg':'pos'}">${r.varT==null?'—':hl(r.varT)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td><td>${accFlag(r.acc)}</td><td>${r.plan&&r.plan.accion?esc(r.plan.accion):'<span class="flag nd">Sin plan</span>'}</td><td>${r.plan&&r.plan.edv?esc(r.plan.edv):'—'}</td><td class="l wr">${r.plan&&r.plan.comentario?esc(r.plan.comentario):''}</td></tr>`).join('')+'</tbody>';
+  const est=(T.estrategia||[]).slice().sort((a,b)=>String(b.mes).localeCompare(String(a.mes)) || CAN.indexOf(a.canal)-CAN.indexOf(b.canal));
+  $('#pa-est').innerHTML = est.length ? est.map(e=>`<div class="est" style="--cc:var(${CAN_COL[e.canal]||'--s0'})"><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><h4>${esc(e.canal)} · ${e.mes?mL(e.mes):''}</h4><span class="pill ${/cumpl|ok|final/i.test(e.status)?'ok':'wait'}">${esc(e.status||'—')}</span></div>
+    <p><b>Situación:</b> ${esc(e.comentario)}</p><p><b>Acción:</b> ${esc(e.acciones)}</p>
+    <div class="kv"><span>TS asignado</span><b>${typeof e.ts==='number'?money(e.ts):esc(e.ts)}</b><span># clientes concentradores</span><b>${e.clientes??'—'}</b><span>Vol. concentradores</span><b>${e.volConc==null?'—':hl(e.volConc)+' HL'}</b><span># clientes nuevos a trabajar</span><b>${e.nClientes??'—'}</b><span>Vol. incremental objetivo</span><b>${e.nClientesInc==null?'—':hl(e.nClientesInc)+' HL'}</b><span>Responsable</span><b>${esc(e.responsable)}</b><span>Deadline</span><b>${esc(e.deadline)}</b></div></div>`).join('') : '<div class="empty">Todavía no hay estrategia cargada en TOP_ESTRATEGIA.</div>';
+  $('#pa-topes').innerHTML = `<thead><tr><th class="l">Negocio</th>${CAN.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`+['CVZA','UNG'].map(u=>`<tr><td class="l">${UN_LBL[u]}</td>${CAN.map(c=>`<td>${(T.meta.topes[u]||{})[c]==null?'—':hl(T.meta.topes[u][c])+' HL'}</td>`).join('')}</tr>`).join('')+'</tbody>';
+}
+
+/* ---------- detalle de cliente ---------- */
+function detail(ci){
+  const un=ST.un, m=ST.m, cl=T.cli[ci], s=ser(un,ci), c=cl[2], M=T.M;
+  const y=M[m].slice(0,4), py=String(+y-1);
+  const ms=T.meses26.map(x=>T.MI[x]);
+  const r=row(un,c,m,ci,rankCan(un,c,m).findIndex(x=>x.ci===ci)+1);
+  const h=`<button class="btn sm x" data-close type="button">Cerrar</button>
+    <div><div class="hint">${esc(c)} · ${UN_LBL[un]} · código ${cl[0]}</div><h2 style="font-size:22px">${esc(cl[1])}</h2><div class="hint">Promotor ${esc(cl[3]||'—')} · visita ${esc(cl[4]||'—')} · supervisor ${esc(cl[5]||'—')}</div></div>
+    <div class="kpis"><div class="kpi"><div class="lb">HL ${ml(M[m])}</div><div class="v">${hl(r.vol)}</div><div class="d">Ranking #${r.rank||'—'} · ${varFmt(r)} MMAA</div></div>
+    <div class="kpi"><div class="lb">R3</div><div class="v">${hl(r.r3t)}</div><div class="d">${r.r3.map(hl).join(' · ')}</div></div>
+    <div class="kpi"><div class="lb">$TS / $FACT</div><div class="v">${pct(r.tsf)}</div><div class="d">Canal ${pct(r.tsfCan)}</div></div>
+    <div class="kpi"><div class="lb">SOM Thomas</div><div class="v">${r.som==null?'—':pct(r.som,0)}</div><div class="d">BD ${r.bd??'—'} SKUs · EDF ${r.edfC||0} CVZA / ${r.edfU||0} UNG</div></div></div>
+    <div class="panel"><div class="ph"><h3>Volumen ${y} vs ${py}</h3></div><div class="legend"><span><i class="dot" style="background:var(--s1)"></i>${y}</span><span><i class="dot" style="background:var(--s0)"></i>${py}</span></div><div class="chart"><canvas id="td-vol"></canvas></div></div>
+    <div class="panel"><div class="ph"><h3>$TS / $FACT mensual</h3></div><div class="legend"><span><i class="dot" style="background:var(--s7)"></i>Cliente</span><span><i class="dot" style="background:var(--ink-3)"></i>Promedio canal</span></div><div class="chart"><canvas id="td-tsf"></canvas></div></div>
+    <div class="tw"><table><thead><tr><th class="l">Mes</th><th>HL</th><th>HL ${py}</th><th>Fact. neta</th><th>TS</th><th>TS/FACT</th></tr></thead><tbody>${ms.map(i=>`<tr><td class="l">${mL(M[i])}</td><td>${hl(s[0][i])}</td><td>${i-12>=0?hl(s[0][i-12]):'—'}</td><td>${money(s[1][i])}</td><td>${money(s[2][i])}</td><td>${pct(div(s[2][i],s[1][i]))}</td></tr>`).join('')}</tbody></table></div>`;
+  const d=$('#drawer'); $('#drawer-in').innerHTML=h; d.hidden=false; d.querySelector('[data-close]').focus();
+  draw('td-vol',{type:'bar', data:{labels:ms.map(i=>MES_ES[+M[i].slice(5)-1]), datasets:[barDS(y, ms.map(i=>s[0][i]),'--s1'), barDS(py, ms.map(i=>i-12>=0?s[0][i-12]:null),'--s0')]}, options:opts(v=>NF0.format(v),{tip:v=>hl(v)+' HL'})});
+  draw('td-tsf',{type:'line', data:{labels:ms.map(i=>MES_ES[+M[i].slice(5)-1]), datasets:[lineDS('Cliente', ms.map(i=>div(s[2][i],s[1][i])),'--s7'), lineDS('Promedio canal', ms.map(i=>{ const t=totC(un,c,i); return div(t.ts,t.fact); }),'--ink-3',{borderDash:[5,4],pointRadius:0})]}, options:opts(v=>pct(v,0),{tip:v=>pct(v)})});
+}
+
+/* ---------- charts ---------- */
+function draw(id,cfg){ if(CHT[id]) CHT[id].destroy(); const el=document.getElementById(id); if(!el||!window.Chart) return; CHT[id]=new Chart(el,cfg); }
+function lineDS(label,data,v,o={}){ const c=css(v); return Object.assign({label,data,borderColor:c,backgroundColor:c,borderWidth:2,pointRadius:3,pointHoverRadius:5,pointBackgroundColor:c,pointBorderColor:css('--panel'),pointBorderWidth:2,tension:.25,spanGaps:true},o); }
+function barDS(label,data,v){ const c=css(v); return {label,data,backgroundColor:c,borderRadius:4,borderSkipped:'start',maxBarThickness:26,borderColor:css('--panel'),borderWidth:{top:0,bottom:0,left:1,right:1}}; }
+function opts(fmt,o={}){
+  const ink2=css('--ink-2'), ink3=css('--ink-3'), grid=css('--grid');
+  const val={grid:{color:grid,drawTicks:false},border:{display:false},ticks:{color:ink3,font:{family:'JetBrains Mono',size:11},callback:v=>fmt(v),padding:6},beginAtZero:true};
+  const cat={grid:{display:false},border:{color:css('--rule-2')},ticks:{color:ink2,font:{family:'Public Sans',size:11},autoSkip:!o.horizontal}};
+  return { responsive:true, maintainAspectRatio:false, indexAxis:o.horizontal?'y':'x', interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false}, tooltip:{backgroundColor:css('--ink'),titleColor:css('--paper'),bodyColor:css('--paper'),padding:10,boxPadding:4,usePointStyle:true,
+      callbacks:{label:ctx=>' '+ctx.dataset.label+': '+(o.tip?o.tip(ctx.parsed[o.horizontal?'x':'y']):ctx.formattedValue)}}},
+    scales: o.horizontal ? {x:val, y:cat} : {x:cat, y:val} };
+}
+
+/* ---------- arranque ---------- */
+function init(){
+  injectSwitch();
+  if(/^top/.test(H0) || (!H0 && window.TOP_OPEN)){ const t=H0.split('-')[1]; if(['resumen','canal','evol','pa'].includes(t)) ST.tab=t; setMode('top'); }
+}
+window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(/^top/.test(h)){ const t=h.split('-')[1]; if(['resumen','canal','evol','pa'].includes(t)) ST.tab=t; if(!document.body.classList.contains('mode-top')) setMode('top'); else showT(ST.tab); } });
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
 
 </html>
