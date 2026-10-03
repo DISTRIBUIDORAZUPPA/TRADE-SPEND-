@@ -205,6 +205,8 @@ body:not(.mode-av) .av-only{display:none!important}
 .supc .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .supc h3{font-size:19px}
 .acc-grid{display:grid;gap:18px}
+.tpb{display:grid;grid-template-columns:1fr 38px;gap:8px;align-items:center}
+.tpb small{font-family:var(--f-mono);font-size:11px;color:var(--ink-2);text-align:right}
 .supc .hd{align-items:center}
 .supc .hd .dl{margin-left:auto}
 .catbar{display:flex;border-radius:999px;overflow:hidden;background:var(--panel-2);width:100%}
@@ -623,6 +625,7 @@ body.embed .rv-top{display:none}
 <div class="top-only" id="top-root">
   <nav class="tabs" role="tablist" id="tp-tabs" style="border-bottom:1px solid var(--rule);margin-bottom:22px">
     <button class="tab" role="tab" data-t="resumen" aria-selected="true">Resumen</button>
+    <button class="tab" role="tab" data-t="avance">Avance del mes</button>
     <button class="tab" role="tab" data-t="canal">Detalle por canal</button>
     <button class="tab" role="tab" data-t="evol">Evolución mensual</button>
     <button class="tab" role="tab" data-t="pa">PA y topes</button>
@@ -662,6 +665,16 @@ body.embed .rv-top{display:none}
         <a href="#top-pa" data-tgo="pa"><span class="ok">✓ PA y topes</span><b>Topes de volumen y plan para desconcentrar el TS</b><span>Acción sugerida + plan cargado en el Sheet</span></a>
       </div>
     </div>
+  </section>
+
+  <section class="tview" id="t-avance" hidden>
+    <div class="sec-h"><h2>Avance del mes</h2><p>Cómo vienen los clientes Top del mes contra el mes anterior completo y contra el tope, por canal y por supervisor con sus promotores. Cada tarjeta se puede descargar como imagen para enviar.</p></div>
+    <div class="kpis" id="ta-kpis"></div>
+    <div class="sec-h"><h2>Por canal</h2></div>
+    <div class="acc-grid" id="ta-cans"></div>
+    <div class="sec-h"><h2>Por supervisor y promotor</h2></div>
+    <div class="acc-grid" id="ta-sups"></div>
+    <div class="note" id="ta-note"></div>
   </section>
 
   <section class="tview" id="t-canal" hidden>
@@ -1512,9 +1525,37 @@ function renderT(){
   const m=ST.m, cur=T.M[m];
   const r3=[m-3,m-2,m-1].filter(i=>i>=0).map(i=>ml(T.M[i]));
   $('#tp-per').innerHTML = `R3: ${r3.join(', ')} · MMAA: ${m-12>=0?mL(T.M[m-12]):'—'}${cur===T.meta.mesActual?' <span class="tp-badge">mes en curso · datos al '+esc(T.meta.generado)+'</span>':''}`;
-  ({resumen:rRes, canal:rCan, evol:rEvol, pa:rPA})[ST.tab]();
+  ({resumen:rRes, avance:rAv, canal:rCan, evol:rEvol, pa:rPA})[ST.tab]();
 }
 
+/* Avance del mes de Clientes TOP: mes analizado contra el mes anterior completo */
+function rAv(){
+  const m=ST.m, un=ST.un, n=ST.n, hasP=m>0, cur=ml(T.M[m]), prv=hasP?ml(T.M[m-1]):'—', enCurso=T.M[m]===T.meta.mesActual;
+  const stamp=`${un==='CVZA'?'Cervezas':'UNG'} · ${cur}${enCurso?' · datos al '+esc(T.meta.generado):''}`;
+  const nomS=x=>!x?'Sin asignar':String(x).toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
+  const av=(a,b)=>b?a/b:null, bar=x=>`<div class="av-bar"><i style="width:${Math.min(100,(x||0)*100)}%"></i></div>`;
+  const all=[], st={}, sp={};
+  CAN.forEach(c=>{ st[c]=canStats(un,c,m,n); sp[c]=hasP?canStats(un,c,m-1,n):null; st[c].rows.forEach(r=>{ r.can=c; r.prev=hasP?ser(un,r.ci)[0][m-1]:null; r.pt=r.tope?r.vol/r.tope:null; r.wasTop=hasP&&sp[c].rows.some(x=>x.ci===r.ci); all.push(r); }); });
+  const th=sum(all.map(r=>r.vol)), tp=sum(all.map(r=>r.prev||0)), tc=sum(CAN.map(c=>st[c].tot.hl)), tcp=hasP?sum(CAN.map(c=>sp[c].tot.hl)):0, tpp=hasP?sum(CAN.map(c=>sp[c].top.hl)):0;
+  const over=all.filter(r=>r.acc==='DESCONCENTRAR'), near=all.filter(r=>r.acc!=='DESCONCENTRAR'&&r.pt!=null&&r.pt>=0.8), nuevos=all.filter(r=>hasP&&!r.wasTop);
+  $('#ta-kpis').innerHTML=`<div class="kpi hero" style="padding-bottom:18px"><div class="lb">HL del Top ${n} · ${cur}</div><div class="v">${hl(th)}</div><div class="d">${hasP?pct(av(th,tp),0)+' de lo que esos clientes compraron en '+prv+' ('+hl(tp)+' HL)':''}</div>${bar(av(th,tp))}</div>
+    <div class="kpi"><div class="lb">Concentración Top ${n}</div><div class="v">${pct(div(th,tc))}</div><div class="d">${hasP?prv+': '+pct(div(tpp,tcp)):''} del HL de los canales</div></div>
+    <div class="kpi"><div class="lb">Ya sobre el tope</div><div class="v">${over.length} de ${all.length}</div><div class="d">${over.filter(r=>r.plan).length} con plan cargado</div></div>
+    <div class="kpi"><div class="lb">Cerca del tope (80 % o más)</div><div class="v">${near.length}</div><div class="d">todavía a tiempo de frenar antes del cierre</div></div>
+    <div class="kpi"><div class="lb">Nuevos en el Top</div><div class="v">${nuevos.length}</div><div class="d">no estaban en el Top ${n} de ${prv}</div></div>`;
+  const stt=r=>r.acc==='DESCONCENTRAR'?'<span class="flag des">SOBRE TOPE</span>':(r.pt!=null&&r.pt>=0.8?'<span class="flag hi">CERCA</span>':'<span class="flag man">OK</span>');
+  const tbar=r=>r.pt==null?'—':`<div class="tpb"><div class="av-bar" style="margin:0"><i style="width:${Math.min(100,r.pt*100)}%;${r.pt>1?'background:var(--red,#ff5470)':''}"></i></div><small>${pct(r.pt,0)}</small></div>`;
+  $('#ta-cans').innerHTML=CAN.map(c=>{ const a=st[c], p=sp[c], x=p?av(a.tot.hl,p.tot.hl):null;
+    return `<div class="supc" data-name="Clientes TOP ${c} ${un}"><div class="hd"><span><h3>Canal ${c}</h3><span class="hint">${stamp} · tope ${a.rows[0]&&a.rows[0].tope!=null?a.rows[0].tope+' HL':'—'}</span></span><span class="hint">Canal: ${hl(a.tot.hl)} HL${x==null?'':' · '+pct(x,0)+' de '+prv} · Top ${n}: ${pct(a.conc)}</span>${DLB}</div>
+      <div class="tw" style="max-height:none"><table><thead><tr><th>#</th><th class="l">Cliente</th><th class="l">Promotor</th><th>HL ${cur}</th><th>HL ${prv}</th><th>Avance</th><th>Mix canal</th><th class="l" style="min-width:110px">% del tope</th><th>Estado</th><th>$TS/$FACT</th><th>Plan</th></tr></thead><tbody>${a.rows.map(r=>`<tr><td>${r.rank}</td><td class="l">${esc(r.nom)}${hasP&&!r.wasTop?' <span class="flag new">Nuevo</span>':''}</td><td class="l"><span class="who">${avatar(r.pv)}${esc(r.pv||'Sin asignar')}</span></td><td><b>${hl(r.vol)}</b></td><td>${r.prev==null?'—':hl(r.prev)}</td><td>${r.prev>0?pct(r.vol/r.prev,0):'—'}</td><td>${pct(r.mixC)}</td><td class="l">${tbar(r)}</td><td>${stt(r)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td><td>${r.plan?'✔':'<span class="hint">—</span>'}</td></tr>`).join('')||'<tr><td colspan="11" class="l hint">Sin compras en el mes.</td></tr>'}</tbody></table></div></div>`; }).join('');
+  const sups={}; all.forEach(r=>{ const k=r.sup||'Sin asignar'; (sups[k]||(sups[k]=[])).push(r); });
+  $('#ta-sups').innerHTML=Object.keys(sups).sort((a,b)=>sups[b].length-sups[a].length).map(k=>{ const rs=sups[k].slice().sort((a,b)=>String(a.pv).localeCompare(String(b.pv))||b.vol-a.vol), o=rs.filter(r=>r.acc==='DESCONCENTRAR').length, ce=rs.filter(r=>r.acc!=='DESCONCENTRAR'&&r.pt!=null&&r.pt>=0.8).length;
+    return `<div class="supc" data-name="Clientes TOP ${nomS(k)} ${un}"><div class="hd"><span class="who">${avatar(k,nomS(k),1)}<span><h3>${esc(nomS(k))}</h3><span class="hint">Clientes TOP · ${stamp}</span></span></span>${DLB}</div>
+      <div class="mini4"><div><span>Clientes Top</span><b>${rs.length}</b><small>${new Set(rs.map(r=>r.pv)).size} promotores</small></div><div><span>HL del Top</span><b>${hl(sum(rs.map(r=>r.vol)))}</b><small>${hasP?prv+': '+hl(sum(rs.map(r=>r.prev||0))):''}</small></div><div><span>Sobre el tope</span><b class="${o?'neg':''}">${o}</b><small>${ce} cerca del tope</small></div><div><span>Con plan</span><b>${rs.filter(r=>r.plan).length}</b><small>de ${o} sobre tope</small></div></div>
+      <div class="tw" style="max-height:none"><table><thead><tr><th class="l">Promotor</th><th class="l">Cliente</th><th class="l">Canal</th><th>HL ${cur}</th><th>HL ${prv}</th><th>Avance</th><th class="l" style="min-width:110px">% del tope</th><th>Estado</th><th>Plan</th></tr></thead><tbody>${rs.map(r=>`<tr><td class="l"><span class="who">${avatar(r.pv)}${esc(r.pv||'Sin asignar')}</span></td><td class="l">${esc(r.nom)}</td><td class="l">${r.can}</td><td><b>${hl(r.vol)}</b></td><td>${r.prev==null?'—':hl(r.prev)}</td><td>${r.prev>0?pct(r.vol/r.prev,0):'—'}</td><td class="l">${tbar(r)}</td><td>${stt(r)}</td><td>${r.plan?'✔':'<span class="hint">—</span>'}</td></tr>`).join('')}</tbody></table></div></div>`; }).join('');
+  $('#ta-note').innerHTML=`<b>Cómo leerlo:</b> compara lo cargado de ${cur} contra ${prv} completo. "Cerca" son clientes que ya consumieron 80 % o más del tope: conviene frenarlos antes del cierre. "Nuevo" es un cliente que entró al Top ${n} y no estaba el mes anterior.`;
+  if(!rAv.on){ rAv.on=true; $('#t-avance').addEventListener('click',e=>{ const d=e.target.closest('[data-dl]'); if(d){ const c=d.closest('.supc'); shot(c, c.dataset.name+' '+ml(T.M[ST.m])); } }); }
+}
 function rRes(){
   const m=ST.m, un=ST.un, n=ST.n;
   const st={}; CAN.forEach(c=>st[c]=canStats(un,c,m,n));
@@ -1938,9 +1979,9 @@ function init(){
   let qs; try{ qs=new URLSearchParams(location.search); }catch(e){ qs=null; }
   if(qs && qs.get('embed')==='1'){ document.body.classList.add('embed'); if(qs.get('b')==='top' && !/^top/.test(H0)){ setMode('top'); return; } if(qs.get('b')==='av'){ setMode('av'); return; } if(qs.get('b')!=='top') return; }
   if(/^av/.test(H0)){ const t=H0.split('-')[1]; if(['gen','sup','acc','pv'].includes(t)) AV.tab=t; setMode('av'); return; }
-  if(/^top/.test(H0) || (!H0 && window.TOP_OPEN)){ const t=H0.split('-')[1]; if(['resumen','canal','evol','pa'].includes(t)) ST.tab=t; setMode('top'); }
+  if(/^top/.test(H0) || (!H0 && window.TOP_OPEN)){ const t=H0.split('-')[1]; if(['resumen','avance','canal','evol','pa'].includes(t)) ST.tab=t; setMode('top'); }
 }
-window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(/^top/.test(h)){ const t=h.split('-')[1]; if(['resumen','canal','evol','pa'].includes(t)) ST.tab=t; if(!document.body.classList.contains('mode-top')) setMode('top'); else showT(ST.tab); } });
+window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(/^top/.test(h)){ const t=h.split('-')[1]; if(['resumen','avance','canal','evol','pa'].includes(t)) ST.tab=t; if(!document.body.classList.contains('mode-top')) setMode('top'); else showT(ST.tab); } });
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
