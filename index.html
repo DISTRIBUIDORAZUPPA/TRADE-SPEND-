@@ -353,6 +353,16 @@ table.big tr.top5 td,table.big tr.top5 td.sticky1{background:color-mix(in srgb,v
 .pm-mo[aria-pressed="true"]{background:var(--hero);color:#fff;border-color:transparent}
 .pm-mo[aria-pressed="true"] span{color:rgba(255,255,255,.88)}
 .pm-mo:disabled{opacity:.4;cursor:default}
+.rv-user{display:flex;align-items:center;gap:8px;margin-left:6px}
+.rv-user .who{font-weight:600;font-size:12.5px;color:var(--ink);white-space:nowrap}
+.rv-user button{border:1px solid var(--rule-2);background:transparent;color:var(--ink-2);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.rv-user button:hover{color:var(--ink);border-color:var(--ink-3)}
+.rv-login{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(6,3,12,.7);padding:16px}
+.rv-login .box{width:min(380px,100%);background:var(--panel);border:1px solid var(--rule-2);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.rv-login h3{font-size:18px}
+.rv-login p{margin:0;color:var(--ink-2);font-size:13px}
+.rv-login .f input{width:100%}
+.rv-login .err{color:var(--bad);font-size:12.5px}
 body.embed .rv-top{display:none}
 @media (max-width:980px){
   .rv-shell{grid-template-columns:1fr}
@@ -1069,9 +1079,9 @@ const Plans = {
     { const t=tot(M.length-1,this.ALL); window.REV_KPI={tsf:div(t.ts,t.fact), gen:D.meta.generado}; window.dispatchEvent(new Event('rev-ready')); }
     this.m = M.length - 1;
     $('#pm-months').addEventListener('click', e=>{ const b=e.target.closest('button[data-i]'); if(b && !b.disabled){ this.m=+b.dataset.i; this.render(); } });
-    $('#pm-add').addEventListener('click', ()=>this.form(null));
+    $('#pm-add').addEventListener('click', async ()=>{ if(await this.can('planes')) this.form(null); });
     $('#cp-plan').addEventListener('click', ()=>copyText(tableTSV('#pm-table')));
-    $('#pm-table').addEventListener('click', e=>{ const b=e.target.closest('button[data-ed]'); if(b) this.form(this.list.find(x=>String(x.id)===b.dataset.ed)); });
+    $('#pm-table').addEventListener('click', async e=>{ const b=e.target.closest('button[data-ed]'); if(b && await this.can('planes')) this.form(this.list.find(x=>String(x.id)===b.dataset.ed)); });
     $('#pm-cl').addEventListener('submit', e=>{ e.preventDefault(); this.saveCierre(); });
     $('#drawer').addEventListener('submit', e=>{ if(e.target.id==='pmf'){ e.preventDefault(); this.save(); } });
     $('#drawer').addEventListener('click', e=>{ const b=e.target.closest('button[data-pmdel]'); if(!b) return; if(b.dataset.pmdel==='ask'){ b.hidden=true; b.nextElementSibling.hidden=false; } else this.remove($('#pm-id').value); });
@@ -1106,13 +1116,13 @@ const Plans = {
     $('#pm-title').textContent = 'Planes de '+nom;
     const rows=this.list.filter(x=>x.mes===k);
     const pill=e=>`<span class="pill ${e==='Cumplido'?'ok':e==='No cumplido'?'bad':e==='En curso'?'wait':'na'}">${esc(e||'Pendiente')}</span>`;
-    $('#pm-table').innerHTML = `<thead><tr><th class="l">Oportunidad detectada</th><th class="l">Acción</th><th class="l">Indicador</th><th class="l">Meta</th><th class="l">Responsable</th><th>Fecha</th><th>Estado</th><th class="l">Resultado / seguimiento</th><th></th></tr></thead><tbody>`+
-      (rows.map(r=>`<tr><td class="l wr"><b>${esc(r.oportunidad)}</b></td><td class="l wr">${esc(r.accion)}</td><td class="l">${esc(r.indicador)}</td><td class="l">${esc(r.meta)}</td><td class="l">${esc(r.responsable)}</td><td>${esc(r.fecha)}</td><td>${pill(r.estado)}</td><td class="l wr">${r.resultado?esc(r.resultado):'<span class="hint">A completar</span>'}</td><td><button class="btn sm" type="button" data-ed="${esc(r.id)}">Editar</button></td></tr>`).join('')
-        || `<tr><td class="empty" colspan="9">Todavía no hay planes cargados para ${nom}. Usá "+ Agregar plan".</td></tr>`)+'</tbody>';
+    $('#pm-table').innerHTML = `<thead><tr><th class="l">Oportunidad detectada</th><th class="l">Acción</th><th class="l">Indicador</th><th class="l">Meta</th><th class="l">Responsable</th><th>Fecha</th><th>Estado</th><th class="l">Resultado / seguimiento</th><th class="l">Cargó</th><th></th></tr></thead><tbody>`+
+      (rows.map(r=>`<tr><td class="l wr"><b>${esc(r.oportunidad)}</b></td><td class="l wr">${esc(r.accion)}</td><td class="l">${esc(r.indicador)}</td><td class="l">${esc(r.meta)}</td><td class="l">${esc(r.responsable)}</td><td>${esc(r.fecha)}</td><td>${pill(r.estado)}</td><td class="l wr">${r.resultado?esc(r.resultado):'<span class="hint">A completar</span>'}</td><td class="l">${esc(r.usuario||'—')}</td><td><button class="btn sm" type="button" data-ed="${esc(r.id)}">Editar</button></td></tr>`).join('')
+        || `<tr><td class="empty" colspan="10">Todavía no hay planes cargados para ${nom}. Usá "+ Agregar plan".</td></tr>`)+'</tbody>';
     const c=this.cierres.find(x=>x.mes===k)||{};
     $('#pm-cl-title').textContent = 'Cierre de '+nom+' · Jefe de Ventas';
     $('#pm-cl-hint').textContent = c.actualizado ? 'Último guardado: '+c.actualizado+(c.autor?' · '+c.autor:'') : 'Todavía sin cierre cargado.';
-    $('#pm-cl-txt').value=c.comentario||''; $('#pm-cl-res').value=c.resultado||'Sin cerrar'; $('#pm-cl-autor').value=c.autor||''; $('#pm-cl-foco').value=c.foco||'';
+    $('#pm-cl-txt').value=c.comentario||''; $('#pm-cl-res').value=c.resultado||'Sin cerrar'; $('#pm-cl-autor').value=c.autor||(window.REV_AUTH&&window.REV_AUTH.user?window.REV_AUTH.user.nombre:''); $('#pm-cl-foco').value=c.foco||'';
   },
   form(p){
     const k=p?p.mes:M[this.m], v=(f)=>esc(p&&p[f]!=null?p[f]:''), o=(x,cur)=>`<option${x===cur?' selected':''}>${x}</option>`;
@@ -1133,7 +1143,8 @@ const Plans = {
     this.editing = p || null;
     const d=$('#drawer'); $('#drawer-in').innerHTML=h; d.hidden=false; $('#pm-op').focus();
   },
-  async post(body){ const r=await fetch(this.api,{method:'POST', body:JSON.stringify(body)}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'error'); if(j.planes) this.list=j.planes; if(j.cierres) this.cierres=j.cierres; },
+  async can(permiso){ return this.mode!=='sheet' || !window.REV_AUTH || await window.REV_AUTH.need(permiso); },
+  async post(body){ body.clave=(window.REV_AUTH&&window.REV_AUTH.clave)||''; const r=await fetch(this.api,{method:'POST', body:JSON.stringify(body)}); const j=await r.json(); if(!j.ok){ if(window.REV_AUTH) window.REV_AUTH.rechazo(j.error); throw new Error(String(j.error||'error').replace(/^(CLAVE|PERMISO): /,'')); } if(j.planes) this.list=j.planes; if(j.cierres) this.cierres=j.cierres; },
   async save(){
     const g=id=>$(id).value.trim(), hoy=new Date().toISOString().slice(0,10), old=this.editing;
     const p={ id:g('#pm-id')||('M'+Date.now().toString(36)), mes:g('#pm-mes'), oportunidad:g('#pm-op'), accion:g('#pm-ac'), indicador:g('#pm-ind'), meta:g('#pm-meta'), responsable:g('#pm-resp'), fecha:g('#pm-fecha'), estado:g('#pm-est'), resultado:g('#pm-res'), creado:(old&&old.creado)||hoy, actualizado:hoy };
@@ -1148,7 +1159,8 @@ const Plans = {
   },
   async saveCierre(){
     const g=id=>$(id).value.trim(), hoy=new Date().toISOString().slice(0,10);
-    const c={ mes:M[this.m], comentario:g('#pm-cl-txt'), resultado:g('#pm-cl-res'), autor:g('#pm-cl-autor'), foco:g('#pm-cl-foco'), actualizado:hoy };
+    const c={ mes:M[this.m], comentario:g('#pm-cl-txt'), resultado:g('#pm-cl-res'), autor:(this.mode==='sheet'&&window.REV_AUTH&&window.REV_AUTH.user)?window.REV_AUTH.user.nombre:g('#pm-cl-autor'), foco:g('#pm-cl-foco'), actualizado:hoy };
+    if(!(await this.can('cierre'))) return;
     $('#pm-cl-save').disabled=true;
     try{ if(this.mode==='sheet') await this.post({action:'tsGuardarCierre', cierre:c}); else { this.cierres=this.cierres.filter(x=>x.mes!==c.mes).concat([c]); this.localSet(); }
       toast('Cierre guardado'); this.render(); }catch(e){ toast('No se pudo guardar: '+e.message); }
@@ -1190,6 +1202,53 @@ function toast(t){ const el=document.createElement('div'); el.className='toast';
 function copyText(txt){ const done=()=>toast('Copiado. Pegalo en Excel o Sheets.'); const fb=()=>{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){toast('Seleccioná y copiá manualmente');} ta.remove(); }; try{ navigator.clipboard.writeText(txt).then(done,fb); }catch(e){ fb(); } }
 function tableTSV(sel){ return [...document.querySelectorAll(sel+' tr')].map(tr=>[...tr.children].map(td=>{ const n=+(td.getAttribute('colspan')||1); return td.innerText.replace(/\s+/g,' ').trim() + '\t'.repeat(n-1); }).join('\t')).join('\n'); }
 
+
+/* ---------- ingreso con clave (las mismas del tablero de Supervisores) ---------- */
+const AUTH = window.REV_AUTH = {
+  user:null, clave:'',
+  api(){ return window.REV_API || ''; },
+  init(){
+    try{ const s=JSON.parse(localStorage.getItem('rev_auth')||'null'); if(s&&s.user){ this.user=s.user; this.clave=s.clave; } }catch(e){}
+    this.paint();
+    window.addEventListener('message', e=>{ if(!/distribuidorazuppa\.github\.io$/.test(e.origin)) return; if(e.data && e.data.revAuth && e.data.revAuth.clave && e.data.revAuth.clave!==this.clave) this.login(e.data.revAuth.clave).catch(()=>{}); });
+    if(window.parent!==window){ const ping=()=>{ try{ window.parent.postMessage({revListo:true},'https://distribuidorazuppa.github.io'); }catch(e){} }; window.addEventListener('rev-ready', ping); ping(); }
+  },
+  save(){ try{ this.user ? localStorage.setItem('rev_auth', JSON.stringify({user:this.user, clave:this.clave})) : localStorage.removeItem('rev_auth'); }catch(e){} },
+  async login(clave){
+    const r=await fetch(this.api(),{method:'POST', body:JSON.stringify({action:'revLogin', clave})}); const j=await r.json();
+    if(!j.ok) throw new Error(j.error||'Clave incorrecta');
+    this.user=j.usuario; this.clave=clave; this.save(); this.paint(); return true;
+  },
+  logout(){ this.user=null; this.clave=''; this.save(); this.paint(); },
+  paint(){ const el=document.getElementById('rv-user'); if(!el) return;
+    el.innerHTML = this.user ? `<span class="who">${esc(this.user.nombre)}</span><button type="button" data-a="out">Salir</button>` : `<button type="button" data-a="in">Ingresar</button>`; },
+  /* permiso: 'planes' o 'cierre'. Devuelve true si puede seguir. */
+  async need(permiso){
+    if(!this.api()) return true;                       // sin Sheet conectado: queda en el navegador
+    if(!this.user){ const ok=await this.ask(); if(!ok) return false; }
+    if(!this.user[permiso]){ toast(`${this.user.nombre} no tiene permiso para ${permiso==='cierre'?'cerrar el mes':'cargar planes'}.`); return false; }
+    return true;
+  },
+  /* si el Sheet rechaza la clave guardada, se vuelve a pedir */
+  rechazo(msg){ if(/^CLAVE/.test(String(msg||''))){ this.logout(); return true; } return false; },
+  ask(){
+    return new Promise(res=>{
+      let d=document.getElementById('rv-login');
+      if(!d){ d=document.createElement('div'); d.id='rv-login'; d.className='rv-login';
+        d.innerHTML=`<form class="box" autocomplete="off"><h3>Ingresá tu clave</h3><p>Es la misma del tablero de Supervisores. Se pide para cargar planes o cerrar el mes; ver el tablero no la necesita.</p>
+          <div class="f"><label for="rv-clave">Clave</label><input id="rv-clave" type="password" required></div><div class="err" id="rv-err" hidden></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" type="button" data-x>Cancelar</button><button class="btn primary" type="submit" id="rv-go">Ingresar</button></div></form>`;
+        document.body.appendChild(d); }
+      d.hidden=false; const inp=d.querySelector('#rv-clave'), err=d.querySelector('#rv-err'), go=d.querySelector('#rv-go'); inp.value=''; err.hidden=true; inp.focus();
+      const done=v=>{ d.hidden=true; d.querySelector('form').onsubmit=null; d.onclick=null; res(v); };
+      d.onclick=e=>{ if(e.target===d || e.target.closest('[data-x]')) done(false); };
+      d.querySelector('form').onsubmit=async e=>{ e.preventDefault(); go.disabled=true; err.hidden=true;
+        try{ await this.login(inp.value.trim()); go.disabled=false; done(true); }
+        catch(ex){ go.disabled=false; err.hidden=false; err.textContent = /Clave/.test(ex.message) ? 'Clave incorrecta. Probá de nuevo.' : 'No se pudo comprobar la clave. Revisá la conexión.'; inp.select(); } };
+    });
+  }
+};
+
 /* ---------- modo: Trade Spend ⇄ Clientes TOP ---------- */
 function injectSwitch(){
   const wrap = document.querySelector('.top > .wrap'); const brand = document.querySelector('.top .brand'); if(!brand) return;
@@ -1199,7 +1258,7 @@ function injectSwitch(){
       <button class="rep" data-r="ts" aria-pressed="true" type="button"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg></span><span><span class="cd">2.4.1.1</span><span class="nm">Trade Spend</span></span><span class="kv"><b id="rep-ts-v">…</b>$TS/$FACT del mes</span></button>
       <button class="rep" data-r="top" aria-pressed="false" type="button"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span><span><span class="cd">2.4.1.3</span><span class="nm">Clientes TOP</span></span><span class="kv"><b id="rep-top-v">…</b>del HL en el Top 5</span></button>
     </div>
-    <div class="rv-gx"><img src="${window.REV_LOGO_GALAXIA||''}" alt="Galaxia"><span id="rv-stamp">Auditoría 2026</span></div>`;
+    <div class="rv-gx"><img src="${window.REV_LOGO_GALAXIA||''}" alt="Galaxia"><span id="rv-stamp">Auditoría 2026</span><div class="rv-user" id="rv-user"></div></div>`;
   wrap.insertBefore(bar, wrap.firstChild);
   const hdr = $('#top-hdr'); const tabs = $('#tabs'); tabs.parentNode.insertBefore(hdr, tabs.nextSibling);
   // menú lateral: las pestañas de cada informe pasan a la izquierda
@@ -1208,7 +1267,8 @@ function injectSwitch(){
   main.parentNode.insertBefore(shell, main); shell.appendChild(aside); shell.appendChild(main);
   const tt = $('#tp-tabs'); tt.classList.add('top-only'); aside.appendChild(tabs); aside.appendChild(tt);
   const tip = document.createElement('div'); tip.className='tip'; tip.textContent='Arriba elegís el informe. Acá, las pantallas de ese informe.'; aside.appendChild(tip);
-  bar.addEventListener('click', e=>{ const b=e.target.closest('.rep'); if(b) setMode(b.dataset.r); });
+  bar.addEventListener('click', e=>{ const b=e.target.closest('.rep'); if(b) return setMode(b.dataset.r); const u=e.target.closest('#rv-user button'); if(u){ if(u.dataset.a==='out') AUTH.logout(); else if(AUTH.api()) AUTH.ask(); else toast('El tablero todavía no está conectado al Sheet.'); } });
+  AUTH.init();
   // números de las tarjetas
   const fillTs = ()=>{ if(window.REV_KPI){ $('#rep-ts-v').textContent = pct(window.REV_KPI.tsf); $('#rv-stamp').innerHTML = 'Auditoría 2026<br>datos al '+esc(String(window.REV_KPI.gen||'').slice(0,5)); } };
   window.addEventListener('rev-ready', fillTs); fillTs();
@@ -1465,8 +1525,8 @@ const TP = {
     this.api = window.REV_API || T.meta.api || '';
     this.set(T.planes||[]);
     $('#pa-mes').addEventListener('click',e=>{ const b=e.target.closest('button[data-mi]'); if(!b) return; ST.m=+b.dataset.mi; $('#tp-mes').value=ST.m; renderT(); });
-    $('#pa-table').addEventListener('click',e=>{ const b=e.target.closest('button[data-plan]'); if(b){ this.form({ci:+b.dataset.plan, can:b.dataset.can, m:ST.m, un:ST.un}); } });
-    $('#rg-table').addEventListener('click',e=>{ const b=e.target.closest('button[data-edit]'); if(!b) return; const p=this.list.find(x=>String(x.id)===b.dataset.edit); if(p) this.form({plan:p}); });
+    $('#pa-table').addEventListener('click',async e=>{ const b=e.target.closest('button[data-plan]'); if(b && (this.mode!=='sheet' || await AUTH.need('planes'))){ this.form({ci:+b.dataset.plan, can:b.dataset.can, m:ST.m, un:ST.un}); } });
+    $('#rg-table').addEventListener('click',async e=>{ const b=e.target.closest('button[data-edit]'); if(!b) return; const p=this.list.find(x=>String(x.id)===b.dataset.edit); if(p && (this.mode!=='sheet' || await AUTH.need('planes'))) this.form({plan:p}); });
     $('#pa-copy').addEventListener('click',()=>copyText(tableTSV('#pa-table')));
     $('#rg-copy').addEventListener('click',()=>copyText(tableTSV('#rg-table')));
     ['#rg-res','#rg-can'].forEach(s=>$(s).addEventListener('change',()=>rReg()));
@@ -1520,14 +1580,14 @@ const TP = {
       creado: c.creado || new Date().toISOString().slice(0,10), actualizado: new Date().toISOString().slice(0,10) });
     $('#tp-save').disabled=true;
     try{
-      if(this.mode==='sheet'){ const r=await fetch(this.api,{method:'POST', body:JSON.stringify({action:'topGuardarPlan', plan:p})}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'error'); this.set(j.planes||this.list.filter(x=>x.id!==p.id).concat([p])); }
+      if(this.mode==='sheet'){ const r=await fetch(this.api,{method:'POST', body:JSON.stringify({action:'topGuardarPlan', plan:p, clave:AUTH.clave})}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'error'); this.set(j.planes||this.list.filter(x=>x.id!==p.id).concat([p])); }
       else { const loc=this.localGet().filter(x=>x.id!==p.id).concat([p]); this.localSet(loc); this.set(this.list.filter(x=>x.id!==p.id).concat([p])); }
       toast('Plan guardado'); $('#drawer').hidden=true; renderT();
-    }catch(e){ toast('No se pudo guardar: '+e.message); $('#tp-save').disabled=false; }
+    }catch(e){ AUTH.rechazo(e.message); toast('No se pudo guardar: '+e.message.replace(/^(CLAVE|PERMISO): /,'')); $('#tp-save').disabled=false; }
   },
   async remove(id){
     try{
-      if(this.mode==='sheet'){ const r=await fetch(this.api,{method:'POST', body:JSON.stringify({action:'topBorrarPlan', id})}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'error'); this.set(j.planes||this.list.filter(x=>x.id!==id)); }
+      if(this.mode==='sheet'){ const r=await fetch(this.api,{method:'POST', body:JSON.stringify({action:'topBorrarPlan', id, clave:AUTH.clave})}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'error'); this.set(j.planes||this.list.filter(x=>x.id!==id)); }
       else { this.localSet(this.localGet().filter(x=>x.id!==id)); this.set(this.list.filter(x=>x.id!==id)); }
       toast('Plan eliminado'); $('#drawer').hidden=true; renderT();
     }catch(e){ toast('No se pudo eliminar: '+e.message); }
