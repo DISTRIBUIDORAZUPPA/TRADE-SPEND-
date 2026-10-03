@@ -205,6 +205,13 @@ body:not(.mode-av) .av-only{display:none!important}
 .supc .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .supc h3{font-size:19px}
 .acc-grid{display:grid;gap:18px}
+.ta-f{align-items:flex-end;flex-wrap:wrap}
+.ta-v{display:flex;flex-direction:column;gap:22px} .ta-v[hidden]{display:none}
+.tarank{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,1fr) 52px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule)}
+.tarank:last-child{border-bottom:0}
+.tarank .who > span{display:flex;flex-direction:column;min-width:0} .tarank .who b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .tarank small{color:var(--ink-3);font-size:11px}
+.rkb{height:10px;border-radius:999px;background:var(--panel-2);overflow:hidden} .rkb i{display:block;height:100%;border-radius:999px}
+.rkv{font-family:var(--f-mono);text-align:right;font-size:13px}
 .tpb{display:grid;grid-template-columns:1fr 38px;gap:8px;align-items:center}
 .tpb small{font-family:var(--f-mono);font-size:11px;color:var(--ink-2);text-align:right}
 .supc .hd{align-items:center}
@@ -250,7 +257,7 @@ tr.sgrp td{background:var(--panel-2);font-weight:700}
 .mini td,.mini th{padding:5px 4px}
 .mini th{position:static;background:transparent;border-bottom:1px solid var(--rule-2);font-size:10px}
 .mini td.l{max-width:190px;overflow:hidden;text-overflow:ellipsis}
-.rk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--panel-2);font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink)}
+.trk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--panel-2);font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink)}
 .rk.r1{background:var(--ink);color:var(--paper)}
 .flag{display:inline-block;font-family:var(--f-body);font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;letter-spacing:.02em}
 .flag.hi{background:var(--bad-soft);color:var(--bad)}
@@ -668,12 +675,33 @@ body.embed .rv-top{display:none}
   </section>
 
   <section class="tview" id="t-avance" hidden>
-    <div class="sec-h"><h2>Avance del mes</h2><p>Cómo vienen los clientes Top del mes contra el mes anterior completo y contra el tope, por canal y por supervisor con sus promotores. Cada tarjeta se puede descargar como imagen para enviar.</p></div>
-    <div class="kpis" id="ta-kpis"></div>
-    <div class="sec-h"><h2>Por canal</h2></div>
-    <div class="acc-grid" id="ta-cans"></div>
-    <div class="sec-h"><h2>Por supervisor y promotor</h2></div>
-    <div class="acc-grid" id="ta-sups"></div>
+    <div class="sec-h"><h2>Avance del mes</h2><p>Cómo vienen los clientes Top del mes contra el mes anterior completo (o contra el mismo mes de 2025) y contra el tope. Filtrá por supervisor, promotor o canal para ver solo lo que necesitás.</p></div>
+    <div class="tfilters ta-f">
+      <div class="f"><label>Comparar contra</label><div class="seg-toggle" id="ta-cmp"><button data-k="prev" aria-pressed="true">Mes anterior</button><button data-k="aa" aria-pressed="false">Mismo mes 2025</button></div></div>
+      <div class="f"><label>Supervisor</label><div class="seg-toggle" id="ta-fsup"></div></div>
+      <div class="f"><label for="ta-fpv">Promotor</label><select id="ta-fpv"></select></div>
+      <div class="f"><label>Canal</label><div class="seg-toggle" id="ta-fcan"></div></div>
+      <button class="btn sm" id="ta-clear" type="button" hidden>Quitar filtros</button>
+    </div>
+    <nav class="tabs" role="tablist" id="ta-tabs" style="border-bottom:1px solid var(--rule)">
+      <button class="tab" role="tab" data-w="res" aria-selected="true">Resumen</button>
+      <button class="tab" role="tab" data-w="can">Por canal</button>
+      <button class="tab" role="tab" data-w="sup">Por supervisor y promotor</button>
+    </nav>
+    <div id="ta-v-res" class="ta-v">
+      <div class="kpis" id="ta-kpis"></div>
+      <div class="note" id="ta-read"></div>
+      <div class="g-main">
+        <div class="panel"><div class="ph"><div><h3>Los que más consumieron del tope</h3><div class="hint">HL del mes sobre el tope del canal</div></div></div><div id="ta-rank"></div></div>
+        <div class="panel"><div class="ph"><div><h3>Estado por promotor</h3><div class="hint">Cantidad de clientes Top según su estado</div></div></div><div class="legend" id="ta-lg2"></div><div class="chart"><canvas id="tc-av2"></canvas></div></div>
+      </div>
+      <div class="g-main" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))">
+        <div class="panel"><div class="ph"><div><h3>Estado por canal</h3><div class="hint">Cantidad de clientes Top según su estado</div></div></div><div class="legend" id="ta-lg1"></div><div class="chart"><canvas id="tc-av1"></canvas></div></div>
+        <div class="panel"><div class="ph"><div><h3>HL del Top: mes analizado vs comparación</h3><div class="hint">Mismos clientes, por canal</div></div></div><div class="legend" id="ta-lg3"></div><div class="chart"><canvas id="tc-av3"></canvas></div></div>
+      </div>
+    </div>
+    <div id="ta-v-can" class="ta-v" hidden><div class="acc-grid" id="ta-cans"></div></div>
+    <div id="ta-v-sup" class="ta-v" hidden><div class="acc-grid" id="ta-sups"></div></div>
     <div class="note" id="ta-note"></div>
   </section>
 
@@ -1529,32 +1557,77 @@ function renderT(){
 }
 
 /* Avance del mes de Clientes TOP: mes analizado contra el mes anterior completo */
+const AVT={view:'res',sup:'ALL',can:'ALL',pv:'ALL',cmp:'prev'};
 function rAv(){
-  const m=ST.m, un=ST.un, n=ST.n, hasP=m>0, cur=ml(T.M[m]), prv=hasP?ml(T.M[m-1]):'—', enCurso=T.M[m]===T.meta.mesActual;
+  const m=ST.m, un=ST.un, n=ST.n, aa=AVT.cmp==='aa', pi=aa?m-12:m-1, hasP=pi>=0, cur=ml(T.M[m]), prv=hasP?ml(T.M[pi]):'—', enCurso=T.M[m]===T.meta.mesActual;
   const stamp=`${un==='CVZA'?'Cervezas':'UNG'} · ${cur}${enCurso?' · datos al '+esc(T.meta.generado):''}`;
-  const nomS=x=>!x?'Sin asignar':String(x).toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
+  const nomS=x=>!x||x==='Sin asignar'?'Sin asignar':String(x).toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
   const av=(a,b)=>b?a/b:null, bar=x=>`<div class="av-bar"><i style="width:${Math.min(100,(x||0)*100)}%"></i></div>`;
-  const all=[], st={}, sp={};
-  CAN.forEach(c=>{ st[c]=canStats(un,c,m,n); sp[c]=hasP?canStats(un,c,m-1,n):null; st[c].rows.forEach(r=>{ r.can=c; r.prev=hasP?ser(un,r.ci)[0][m-1]:null; r.pt=r.tope?r.vol/r.tope:null; r.wasTop=hasP&&sp[c].rows.some(x=>x.ci===r.ci); all.push(r); }); });
-  const th=sum(all.map(r=>r.vol)), tp=sum(all.map(r=>r.prev||0)), tc=sum(CAN.map(c=>st[c].tot.hl)), tcp=hasP?sum(CAN.map(c=>sp[c].tot.hl)):0, tpp=hasP?sum(CAN.map(c=>sp[c].top.hl)):0;
-  const over=all.filter(r=>r.acc==='DESCONCENTRAR'), near=all.filter(r=>r.acc!=='DESCONCENTRAR'&&r.pt!=null&&r.pt>=0.8), nuevos=all.filter(r=>hasP&&!r.wasTop);
-  $('#ta-kpis').innerHTML=`<div class="kpi hero" style="padding-bottom:18px"><div class="lb">HL del Top ${n} · ${cur}</div><div class="v">${hl(th)}</div><div class="d">${hasP?pct(av(th,tp),0)+' de lo que esos clientes compraron en '+prv+' ('+hl(tp)+' HL)':''}</div>${bar(av(th,tp))}</div>
-    <div class="kpi"><div class="lb">Concentración Top ${n}</div><div class="v">${pct(div(th,tc))}</div><div class="d">${hasP?prv+': '+pct(div(tpp,tcp)):''} del HL de los canales</div></div>
-    <div class="kpi"><div class="lb">Ya sobre el tope</div><div class="v">${over.length} de ${all.length}</div><div class="d">${over.filter(r=>r.plan).length} con plan cargado</div></div>
-    <div class="kpi"><div class="lb">Cerca del tope (80 % o más)</div><div class="v">${near.length}</div><div class="d">todavía a tiempo de frenar antes del cierre</div></div>
-    <div class="kpi"><div class="lb">Nuevos en el Top</div><div class="v">${nuevos.length}</div><div class="d">no estaban en el Top ${n} de ${prv}</div></div>`;
-  const stt=r=>r.acc==='DESCONCENTRAR'?'<span class="flag des">SOBRE TOPE</span>':(r.pt!=null&&r.pt>=0.8?'<span class="flag hi">CERCA</span>':'<span class="flag man">OK</span>');
-  const tbar=r=>r.pt==null?'—':`<div class="tpb"><div class="av-bar" style="margin:0"><i style="width:${Math.min(100,r.pt*100)}%;${r.pt>1?'background:var(--red,#ff5470)':''}"></i></div><small>${pct(r.pt,0)}</small></div>`;
-  $('#ta-cans').innerHTML=CAN.map(c=>{ const a=st[c], p=sp[c], x=p?av(a.tot.hl,p.tot.hl):null;
-    return `<div class="supc" data-name="Clientes TOP ${c} ${un}"><div class="hd"><span><h3>Canal ${c}</h3><span class="hint">${stamp} · tope ${a.rows[0]&&a.rows[0].tope!=null?a.rows[0].tope+' HL':'—'}</span></span><span class="hint">Canal: ${hl(a.tot.hl)} HL${x==null?'':' · '+pct(x,0)+' de '+prv} · Top ${n}: ${pct(a.conc)}</span>${DLB}</div>
-      <div class="tw" style="max-height:none"><table><thead><tr><th>#</th><th class="l">Cliente</th><th class="l">Promotor</th><th>HL ${cur}</th><th>HL ${prv}</th><th>Avance</th><th>Mix canal</th><th class="l" style="min-width:110px">% del tope</th><th>Estado</th><th>$TS/$FACT</th><th>Plan</th></tr></thead><tbody>${a.rows.map(r=>`<tr><td>${r.rank}</td><td class="l">${esc(r.nom)}${hasP&&!r.wasTop?' <span class="flag new">Nuevo</span>':''}</td><td class="l"><span class="who">${avatar(r.pv)}${esc(r.pv||'Sin asignar')}</span></td><td><b>${hl(r.vol)}</b></td><td>${r.prev==null?'—':hl(r.prev)}</td><td>${r.prev>0?pct(r.vol/r.prev,0):'—'}</td><td>${pct(r.mixC)}</td><td class="l">${tbar(r)}</td><td>${stt(r)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td><td>${r.plan?'✔':'<span class="hint">—</span>'}</td></tr>`).join('')||'<tr><td colspan="11" class="l hint">Sin compras en el mes.</td></tr>'}</tbody></table></div></div>`; }).join('');
-  const sups={}; all.forEach(r=>{ const k=r.sup||'Sin asignar'; (sups[k]||(sups[k]=[])).push(r); });
-  $('#ta-sups').innerHTML=Object.keys(sups).sort((a,b)=>sups[b].length-sups[a].length).map(k=>{ const rs=sups[k].slice().sort((a,b)=>String(a.pv).localeCompare(String(b.pv))||b.vol-a.vol), o=rs.filter(r=>r.acc==='DESCONCENTRAR').length, ce=rs.filter(r=>r.acc!=='DESCONCENTRAR'&&r.pt!=null&&r.pt>=0.8).length;
-    return `<div class="supc" data-name="Clientes TOP ${nomS(k)} ${un}"><div class="hd"><span class="who">${avatar(k,nomS(k),1)}<span><h3>${esc(nomS(k))}</h3><span class="hint">Clientes TOP · ${stamp}</span></span></span>${DLB}</div>
-      <div class="mini4"><div><span>Clientes Top</span><b>${rs.length}</b><small>${new Set(rs.map(r=>r.pv)).size} promotores</small></div><div><span>HL del Top</span><b>${hl(sum(rs.map(r=>r.vol)))}</b><small>${hasP?prv+': '+hl(sum(rs.map(r=>r.prev||0))):''}</small></div><div><span>Sobre el tope</span><b class="${o?'neg':''}">${o}</b><small>${ce} cerca del tope</small></div><div><span>Con plan</span><b>${rs.filter(r=>r.plan).length}</b><small>de ${o} sobre tope</small></div></div>
-      <div class="tw" style="max-height:none"><table><thead><tr><th class="l">Promotor</th><th class="l">Cliente</th><th class="l">Canal</th><th>HL ${cur}</th><th>HL ${prv}</th><th>Avance</th><th class="l" style="min-width:110px">% del tope</th><th>Estado</th><th>Plan</th></tr></thead><tbody>${rs.map(r=>`<tr><td class="l"><span class="who">${avatar(r.pv)}${esc(r.pv||'Sin asignar')}</span></td><td class="l">${esc(r.nom)}</td><td class="l">${r.can}</td><td><b>${hl(r.vol)}</b></td><td>${r.prev==null?'—':hl(r.prev)}</td><td>${r.prev>0?pct(r.vol/r.prev,0):'—'}</td><td class="l">${tbar(r)}</td><td>${stt(r)}</td><td>${r.plan?'✔':'<span class="hint">—</span>'}</td></tr>`).join('')}</tbody></table></div></div>`; }).join('');
-  $('#ta-note').innerHTML=`<b>Cómo leerlo:</b> compara lo cargado de ${cur} contra ${prv} completo. "Cerca" son clientes que ya consumieron 80 % o más del tope: conviene frenarlos antes del cierre. "Nuevo" es un cliente que entró al Top ${n} y no estaba el mes anterior.`;
-  if(!rAv.on){ rAv.on=true; $('#t-avance').addEventListener('click',e=>{ const d=e.target.closest('[data-dl]'); if(d){ const c=d.closest('.supc'); shot(c, c.dataset.name+' '+ml(T.M[ST.m])); } }); }
+  const RED='#ff5470', AMB='#FBBF24', GRN='#34D399';
+  const full=[], st={}, sp={};
+  CAN.forEach(c=>{ st[c]=canStats(un,c,m,n); sp[c]=hasP?canStats(un,c,pi,n):null; st[c].rows.forEach(r=>{ r.can=c; r.sup=r.sup||'Sin asignar'; r.pv=r.pv||'Sin asignar'; r.prev=hasP?ser(un,r.ci)[0][pi]:null; r.pt=r.tope?r.vol/r.tope:null; r.wasTop=hasP&&sp[c].rows.some(x=>x.ci===r.ci);
+    r.stt=r.acc==='DESCONCENTRAR'?'over':(r.pt!=null&&r.pt>=0.8?'near':'ok'); full.push(r); }); });
+  /* filtros */
+  if(!rAv.on){ rAv.on=true;
+    $('#t-avance').addEventListener('click',e=>{ const d=e.target.closest('[data-dl]'); if(d){ const c=d.closest('.supc'); shot(c, c.dataset.name+' '+ml(T.M[ST.m])); } });
+    tog('#ta-fsup','s',v=>{ AVT.sup=v; AVT.pv='ALL'; rAv(); });
+    tog('#ta-fcan','c',v=>{ AVT.can=v; rAv(); });
+    tog('#ta-cmp','k',v=>{ AVT.cmp=v; rAv(); });
+    $('#ta-fpv').addEventListener('change',e=>{ AVT.pv=e.target.value; rAv(); });
+    $('#ta-clear').addEventListener('click',()=>{ AVT.sup=AVT.can=AVT.pv='ALL'; rAv(); });
+    document.querySelectorAll('#ta-tabs .tab').forEach(b=>b.addEventListener('click',()=>{ AVT.view=b.dataset.w; rAv(); })); }
+  setPressed('#ta-cmp','k',AVT.cmp);
+  const supL=[...new Set(full.map(r=>r.sup))].sort(); if(AVT.sup!=='ALL'&&!supL.includes(AVT.sup)) AVT.sup='ALL';
+  const pvL=[...new Set(full.filter(r=>AVT.sup==='ALL'||r.sup===AVT.sup).map(r=>r.pv))].sort(); if(AVT.pv!=='ALL'&&!pvL.includes(AVT.pv)) AVT.pv='ALL';
+  $('#ta-fsup').innerHTML=`<button data-s="ALL" aria-pressed="${AVT.sup==='ALL'}">Todos</button>`+supL.map(x=>`<button data-s="${esc(x)}" aria-pressed="${AVT.sup===x}">${esc(nomS(x))}</button>`).join('');
+  $('#ta-fcan').innerHTML=`<button data-c="ALL" aria-pressed="${AVT.can==='ALL'}">Todos</button>`+CAN.map(c=>`<button data-c="${c}" aria-pressed="${AVT.can===c}">${c}</button>`).join('');
+  $('#ta-fpv').innerHTML=`<option value="ALL">Todos</option>`+pvL.map(x=>`<option value="${esc(x)}"${AVT.pv===x?' selected':''}>${esc(x)}</option>`).join('');
+  const filt=AVT.sup!=='ALL'||AVT.can!=='ALL'||AVT.pv!=='ALL'; $('#ta-clear').hidden=!filt;
+  const all=full.filter(r=>(AVT.sup==='ALL'||r.sup===AVT.sup)&&(AVT.can==='ALL'||r.can===AVT.can)&&(AVT.pv==='ALL'||r.pv===AVT.pv));
+  const cans=CAN.filter(c=>AVT.can==='ALL'||c===AVT.can);
+  const ftxt=[AVT.sup!=='ALL'?nomS(AVT.sup):'', AVT.pv!=='ALL'?AVT.pv:'', AVT.can!=='ALL'?'Canal '+AVT.can:''].filter(Boolean).join(' · ');
+  document.querySelectorAll('#ta-tabs .tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.w===AVT.view));
+  ['res','can','sup'].forEach(w=>$('#ta-v-'+w).hidden = w!==AVT.view);
+  const th=sum(all.map(r=>r.vol)), tp=sum(all.map(r=>r.prev||0)), tc=sum(cans.map(c=>st[c].tot.hl));
+  const over=all.filter(r=>r.stt==='over'), near=all.filter(r=>r.stt==='near'), nuevos=all.filter(r=>hasP&&!r.wasTop);
+  const sttF=r=>r.stt==='over'?'<span class="flag des">SOBRE TOPE</span>':(r.stt==='near'?'<span class="flag hi">CERCA</span>':'<span class="flag man">OK</span>');
+  const tbar=r=>r.pt==null?'—':`<div class="tpb"><div class="av-bar" style="margin:0"><i style="width:${Math.min(100,r.pt*100)}%;${r.pt>1?'background:'+RED:''}"></i></div><small>${pct(r.pt,0)}</small></div>`;
+  const empty='<div class="empty">No hay clientes Top con este filtro.</div>';
+
+  if(AVT.view==='res'){
+    $('#ta-kpis').innerHTML=`<div class="kpi hero" style="padding-bottom:18px"><div class="lb">HL del Top ${n} · ${cur}${ftxt?' · '+esc(ftxt):''}</div><div class="v">${hl(th)}</div><div class="d">${hasP&&tp?pct(av(th,tp),0)+' de lo que esos clientes compraron en '+prv+' ('+hl(tp)+' HL)':''}</div>${bar(av(th,tp))}</div>
+      <div class="kpi"><div class="lb">Clientes Top</div><div class="v">${all.length}</div><div class="d">${pct(div(th,tc))} del HL ${AVT.can==='ALL'?'de los canales':'del canal'}</div></div>
+      <div class="kpi"><div class="lb">Ya sobre el tope</div><div class="v" style="color:${over.length?RED:'inherit'}">${over.length}</div><div class="d">${over.filter(r=>r.plan).length} con plan cargado</div></div>
+      <div class="kpi"><div class="lb">Cerca del tope (80 % o más)</div><div class="v" style="color:${near.length?AMB:'inherit'}">${near.length}</div><div class="d">a tiempo de frenar antes del cierre</div></div>
+      <div class="kpi"><div class="lb">Nuevos en el Top</div><div class="v">${nuevos.length}</div><div class="d">no estaban en el Top ${n} de ${prv}</div></div>`;
+    const cnt=(rows,k)=>rows.filter(r=>r.stt===k).length;
+    const stack=(id,labels,groups)=>{ const o=opts(v=>v,{horizontal:true,tip:v=>v+' clientes'}); o.scales.x.stacked=o.scales.y.stacked=true; o.scales.x.ticks.precision=0;
+      draw(id,{type:'bar',data:{labels,datasets:[['over','Sobre tope',RED],['near','Cerca',AMB],['ok','OK',GRN]].map(([k,l,c])=>Object.assign(barDS(l,groups.map(g=>cnt(g,k)),'--s1'),{backgroundColor:c}))},options:o}); };
+    const leg=`<span><i class="dot" style="background:${RED}"></i>Sobre tope</span><span><i class="dot" style="background:${AMB}"></i>Cerca</span><span><i class="dot" style="background:${GRN}"></i>OK</span>`;
+    $('#ta-lg1').innerHTML=leg; $('#ta-lg2').innerHTML=leg;
+    $('#ta-lg3').innerHTML=`<span><i class="dot" style="background:var(--s1)"></i>${cur}</span><span><i class="dot" style="background:var(--s0)"></i>${prv}</span>`;
+    stack('tc-av1',cans,cans.map(c=>all.filter(r=>r.can===c)));
+    const pvs=[...new Set(all.map(r=>r.pv))].sort((a,b)=>cnt(all.filter(r=>r.pv===b),'over')-cnt(all.filter(r=>r.pv===a),'over')||all.filter(r=>r.pv===b).length-all.filter(r=>r.pv===a).length);
+    stack('tc-av2',pvs,pvs.map(p=>all.filter(r=>r.pv===p)));
+    draw('tc-av3',{type:'bar',data:{labels:cans,datasets:[barDS(cur,cans.map(c=>sum(all.filter(r=>r.can===c).map(r=>r.vol))),'--s1'),barDS(prv,cans.map(c=>sum(all.filter(r=>r.can===c).map(r=>r.prev||0))),'--s0')]},options:opts(v=>NF0.format(v),{tip:v=>hl(v)+' HL'})});
+    const rk=all.filter(r=>r.pt!=null).sort((a,b)=>b.pt-a.pt).slice(0,8), mx=Math.max(1,...rk.map(r=>r.pt));
+    $('#ta-rank').innerHTML=rk.map(r=>`<div class="tarank"><span class="who">${avatar(r.pv)}<span><b>${esc(r.nom)}</b><small>${esc(r.pv)} · ${r.can} · ${hl(r.vol)} HL de ${r.tope} de tope</small></span></span><div class="rkb"><i style="width:${r.pt/mx*100}%;background:${r.stt==='over'?RED:r.stt==='near'?AMB:GRN}"></i></div><b class="rkv">${pct(r.pt,0)}</b></div>`).join('')||empty;
+    const tsup={}; all.forEach(r=>(tsup[r.sup]||(tsup[r.sup]=[])).push(r));
+    $('#ta-read').innerHTML=all.length?`<b>Cómo vienen:</b> de ${all.length} clientes Top${ftxt?' ('+esc(ftxt)+')':''}, <b>${over.length}</b> ya pasaron el tope y <b>${near.length}</b> están cerca. ${over.length?(over.filter(r=>r.plan).length?over.filter(r=>r.plan).length+' de los que se pasaron tienen plan cargado. ':'Ninguno de los que se pasaron tiene plan cargado. '):''}${Object.keys(tsup).length>1?Object.keys(tsup).map(k=>nomS(k)+': '+cnt(tsup[k],'over')+' sobre tope de '+tsup[k].length).join(' · ')+'. ':''}Compara ${cur} contra ${prv}${aa?' (mismo mes del año anterior)':' completo'}.`:'';
+  }
+  if(AVT.view==='can'){
+    $('#ta-cans').innerHTML=cans.map(c=>{ const a=st[c], p=sp[c], x=p?av(a.tot.hl,p.tot.hl):null, rows=all.filter(r=>r.can===c); if(!rows.length&&filt) return '';
+      return `<div class="supc" data-name="Clientes TOP ${c} ${un}"><div class="hd"><span><h3>Canal ${c}</h3><span class="hint">${stamp}${ftxt?' · '+esc(ftxt):''} · tope ${a.rows[0]&&a.rows[0].tope!=null?a.rows[0].tope+' HL':'—'}</span></span><span class="hint">Canal: ${hl(a.tot.hl)} HL${x==null?'':' · '+pct(x,0)+' de '+prv} · Top ${n}: ${pct(a.conc)}</span>${DLB}</div>
+        <div class="tw" style="max-height:none"><table><thead><tr><th>#</th><th class="l">Cliente</th><th class="l">Promotor</th><th>HL ${cur}</th><th>HL ${prv}</th><th>Avance</th><th>Mix canal</th><th class="l" style="min-width:110px">% del tope</th><th>Estado</th><th>$TS/$FACT</th><th>Plan</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.rank}</td><td class="l">${esc(r.nom)}${hasP&&!r.wasTop?' <span class="flag new">Nuevo</span>':''}</td><td class="l"><span class="who">${avatar(r.pv)}${esc(r.pv)}</span></td><td><b>${hl(r.vol)}</b></td><td>${r.prev==null?'—':hl(r.prev)}</td><td>${r.prev>0?pct(r.vol/r.prev,0):'—'}</td><td>${pct(r.mixC)}</td><td class="l">${tbar(r)}</td><td>${sttF(r)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td><td>${r.plan?'✔':'<span class="hint">—</span>'}</td></tr>`).join('')||'<tr><td colspan="11" class="l hint">Sin compras en el mes.</td></tr>'}</tbody></table></div></div>`; }).join('')||empty;
+  }
+  if(AVT.view==='sup'){
+    const sups={}; all.forEach(r=>(sups[r.sup]||(sups[r.sup]=[])).push(r));
+    $('#ta-sups').innerHTML=Object.keys(sups).sort((a,b)=>sups[b].length-sups[a].length).map(k=>{ const rs=sups[k].slice().sort((a,b)=>String(a.pv).localeCompare(String(b.pv))||b.vol-a.vol), o=rs.filter(r=>r.stt==='over').length, ce=rs.filter(r=>r.stt==='near').length;
+      return `<div class="supc" data-name="Clientes TOP ${nomS(k)} ${un}"><div class="hd"><span class="who">${avatar(k,nomS(k),1)}<span><h3>${esc(nomS(k))}</h3><span class="hint">Clientes TOP · ${stamp}${AVT.pv!=='ALL'?' · '+esc(AVT.pv):''}${AVT.can!=='ALL'?' · Canal '+AVT.can:''}</span></span></span>${DLB}</div>
+        <div class="mini4"><div><span>Clientes Top</span><b>${rs.length}</b><small>${new Set(rs.map(r=>r.pv)).size} promotores</small></div><div><span>HL del Top</span><b>${hl(sum(rs.map(r=>r.vol)))}</b><small>${hasP?prv+': '+hl(sum(rs.map(r=>r.prev||0))):''}</small></div><div><span>Sobre el tope</span><b class="${o?'neg':''}">${o}</b><small>${ce} cerca del tope</small></div><div><span>Con plan</span><b>${rs.filter(r=>r.plan).length}</b><small>de ${o} sobre tope</small></div></div>
+        <div class="tw" style="max-height:none"><table><thead><tr><th class="l">Promotor</th><th class="l">Cliente</th><th class="l">Canal</th><th>HL ${cur}</th><th>HL ${prv}</th><th>Avance</th><th class="l" style="min-width:110px">% del tope</th><th>Estado</th><th>Plan</th></tr></thead><tbody>${rs.map(r=>`<tr><td class="l"><span class="who">${avatar(r.pv)}${esc(r.pv)}</span></td><td class="l">${esc(r.nom)}</td><td class="l">${r.can}</td><td><b>${hl(r.vol)}</b></td><td>${r.prev==null?'—':hl(r.prev)}</td><td>${r.prev>0?pct(r.vol/r.prev,0):'—'}</td><td class="l">${tbar(r)}</td><td>${sttF(r)}</td><td>${r.plan?'✔':'<span class="hint">—</span>'}</td></tr>`).join('')}</tbody></table></div></div>`; }).join('')||empty;
+  }
+  $('#ta-note').innerHTML=`<b>Cómo leerlo:</b> compara lo cargado de ${cur} contra ${prv}${aa?' (mismo mes del año anterior)':' completo'}. "Cerca" son clientes que ya consumieron 80 % o más del tope: conviene frenarlos antes del cierre. "Nuevo" es un cliente que entró al Top ${n} y no estaba el mes anterior.`;
 }
 function rRes(){
   const m=ST.m, un=ST.un, n=ST.n;
