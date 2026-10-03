@@ -363,6 +363,33 @@ table.big tr.top5 td,table.big tr.top5 td.sticky1{background:color-mix(in srgb,v
 .rv-login p{margin:0;color:var(--ink-2);font-size:13px}
 .rv-login .f input{width:100%}
 .rv-login .err{color:var(--bad);font-size:12.5px}
+#kpis{grid-template-columns:minmax(0,1.5fr) repeat(4,minmax(0,1fr))}
+.kpi.hero{position:relative;overflow:hidden;padding-bottom:64px}
+.kpi.hero .v{font-size:clamp(24px,2.5vw,36px)}
+.kpi.hero canvas{position:absolute;left:0;right:0;bottom:0;width:100%!important;height:62px!important;opacity:.9}
+.ringrow{display:flex;align-items:center;gap:12px;margin-top:6px}
+.ringrow svg{flex:none;width:58px;height:58px}
+.ringrow > div{min-width:0}
+.ringrow .v{font-size:clamp(17px,1.4vw,22px)}
+.ringrow .d{white-space:nowrap;margin-top:2px;font-size:11px}
+#tp-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g-main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px}
+.cbars{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+.cbar .r{display:flex;justify-content:space-between;gap:10px;font-weight:500}
+.cbar .r b{font-weight:700;font-variant-numeric:tabular-nums}
+.cbar .tr{height:8px;border-radius:999px;background:var(--panel-2);margin-top:6px;overflow:hidden}
+.cbar .tr i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--s1),var(--s2))}
+.rv-extra{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--rule)}
+.rv-extra button{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:500;cursor:pointer}
+.rv-extra button:hover{color:var(--ink);border-color:var(--ink-3)}
+.rv-extra .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--panel-2);flex:none}
+.rv-extra .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sop-d ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;counter-reset:sop}
+.sop-d li{counter-increment:sop;position:relative;padding-left:34px;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.sop-d li::before{content:counter(sop);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;background:var(--hero);color:#fff;font:700 11px/22px var(--f-mono);text-align:center}
+.sop-d li b{color:var(--ink)}
+.sop-d .upd{margin:18px 0 0;font-size:13px;color:var(--ink-2);background:var(--panel-2);border-radius:12px;padding:10px 12px}
+.drawer .reading li{max-width:none}
 body.embed .rv-top{display:none}
 @media (max-width:980px){
   .rv-shell{grid-template-columns:1fr}
@@ -372,6 +399,11 @@ body.embed .rv-top{display:none}
   .rv-side .tab{white-space:nowrap}
   .rv-side .tip{display:none}
   .rep .kv{display:none}
+  .rv-extra{flex-direction:row;border-top:0;margin-top:6px;padding-top:0;overflow-x:auto}
+  .rv-extra button{white-space:nowrap}
+  #kpis,#tp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #kpis .hero{grid-column:1/-1}
+  .g-main{grid-template-columns:1fr}
 }
 @media (max-width:620px){ .rv-reps{flex-direction:column} .rep .kv{display:block} .rv-gx span{display:none} }
 </style>
@@ -419,7 +451,7 @@ body.embed .rv-top{display:none}
   <!-- RESUMEN -->
   <section class="view" id="v-resumen" hidden>
     <div class="kpis" id="kpis"></div>
-    <details class="sop" open>
+    <details class="sop" open hidden id="sop-ts">
       <summary><h3>Cómo usar este tablero</h3><span class="hint"></span></summary>
       <ol>
         <li><b>Elegí el período y los filtros.</b> Arriba: Desde / Hasta, negocio, segmento, canal y tipo de acción. Todas las pestañas usan esos filtros. "Limpiar filtros" vuelve a todo.</li>
@@ -433,12 +465,15 @@ body.embed .rv-top{display:none}
       </ol>
       <p class="upd"><b>Actualizar datos:</b> cargá las bases en el Sheet de Trade Spend y corré <b>Actualizar tablero</b> desde el menú. En 1 o 2 minutos se ve acá.</p>
     </details>
-    <div class="panel">
+    <div class="panel" id="rd-ts" hidden>
       <div class="ph"><h3>Lectura del período</h3><span class="hint" id="read-hint"></span></div>
       <ul class="reading" id="reading"></ul>
     </div>
-    <div class="grid2">
+    <div class="g-main">
       <div class="panel"><div class="ph"><div><h3>Gasto mensual por tipo de acción</h3><div class="hint">TS en pesos corrientes</div></div></div><div class="legend" id="lg-cat"></div><div class="chart"><canvas id="c-ts"></canvas></div></div>
+      <div class="panel"><div class="ph"><div><h3>$TS / $FACT por canal</h3><div class="hint" id="cb-hint"></div></div></div><div class="cbars" id="cbars"></div></div>
+    </div>
+    <div class="grid2">
       <div class="panel"><div class="ph"><div><h3>$TS / $FACT evolutivo</h3><div class="hint">Gasto sobre facturación neta</div></div></div><div class="chart"><canvas id="c-tsfact"></canvas></div></div>
       <div class="panel"><div class="ph"><div><h3>$TS / HL evolutivo</h3><div class="hint">Pesos de TS por hectolitro vendido</div></div></div><div class="chart"><canvas id="c-tshl"></canvas></div></div>
       <div class="panel"><div class="ph"><div><h3>Declarado vs reconocido por CMQ</h3><div class="hint">Nominal (declarado Zuppa) vs real (acreditado CMQ)</div></div></div><div class="chart"><canvas id="c-decl-mini"></canvas></div></div>
@@ -561,7 +596,7 @@ body.embed .rv-top{display:none}
 
   <section class="tview" id="t-resumen" hidden>
     <div class="kpis" id="tp-kpis"></div>
-    <details class="sop" open>
+    <details class="sop" open hidden id="sop-top">
       <summary><h3>Cómo usar este tablero</h3><span class="hint"></span></summary>
       <ol class="c3">
         <li><b>Elegí el mes, el negocio y el Top.</b> Arriba: mes analizado (el vigente viene marcado "en curso"), Cervezas o UNG, y Top 5, 10 o 20 por canal. Todo el tablero se recalcula.</li>
@@ -573,7 +608,7 @@ body.embed .rv-top{display:none}
       </ol>
       <p class="upd"><b>Actualizar datos:</b> pegá BASE 2026 y BASE 2025 en TOP_BASE_2026 y TOP_BASE_2025, cargá planes y topes, y corré <b>Clientes TOP → Actualizar Clientes TOP</b> en el Sheet. En 1 o 2 minutos se ve acá.</p>
     </details>
-    <div class="panel"><div class="ph"><h3>Lectura del mes</h3><span class="hint" id="tp-read-h"></span></div><ul class="reading" id="tp-read"></ul></div>
+    <div class="panel" id="rd-top" hidden><div class="ph"><h3>Lectura del mes</h3><span class="hint" id="tp-read-h"></span></div><ul class="reading" id="tp-read"></ul></div>
     <div>
       <div class="sec-h" style="margin-bottom:10px"><h2>Top por canal</h2><p>Tocá una tarjeta para ver el detalle completo del canal.</p></div>
       <div class="cgrid" id="tp-cards"></div>
@@ -799,13 +834,13 @@ function rResumen(){
   const dec = declByMonth();
   const lastDec = [...ms].reverse().find(m=>dec[M[m]]);
   const dk = lastDec!=null ? dec[M[lastDec]] : null;
-  $('#kpis').innerHTML = [
-    ['TS del período', mill(per.ts), `${ms.length} ${ms.length===1?'mes':'meses'} · ${mlab(M[S.m0])} a ${mlab(M[S.m1])}`],
-    ['TS ' + mlab(M[S.m1]), mill(last.ts), delta(last.ts, prev&&prev.ts)],
-    ['$TS/$FACT ' + mlab(M[S.m1]), pct(div(last.ts,last.fact)), delta(div(last.ts,last.fact), prev&&div(prev.ts,prev.fact), 'pp')],
-    ['$TS/HL ' + mlab(M[S.m1]), money(div(last.ts,last.hl)), delta(div(last.ts,last.hl), prev&&div(prev.ts,prev.hl))],
-    ['% reconocido CMQ', dk? pct(div(dk.rec,dk.dec),1) : '—', dk? `${mlab(M[lastDec])} · no reconocido ${mill(dk.dec-dk.rec)}` : 'Sin DECLARADOS en el período'],
-  ].map(([l,v,d])=>`<div class="kpi"><div class="lb">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+  { const tsfL=div(last.ts,last.fact), tsf0=div(rows[0].ts,rows[0].fact), R=30, C=2*Math.PI*R, pr=Math.max(0,Math.min(1,(tsfL||0)/0.4));
+    $('#kpis').innerHTML = `<div class="kpi hero"><div class="lb">Trade Spend · ${mlab(M[S.m1])}</div><div class="v">${mill(last.ts)}</div><div class="d">${delta(last.ts, prev&&prev.ts)}</div><canvas id="c-spark"></canvas></div>
+      <div class="kpi"><div class="lb">$TS/$FACT · ${mlab(M[S.m1])}</div><div class="ringrow"><svg width="72" height="72" viewBox="0 0 76 76" aria-hidden="true"><defs><linearGradient id="rg-tsf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${css('--s1')}"/><stop offset="1" stop-color="${css('--s2')}"/></linearGradient></defs><circle cx="38" cy="38" r="${R}" fill="none" stroke="${css('--panel-2')}" stroke-width="9"/><circle cx="38" cy="38" r="${R}" fill="none" stroke="url(#rg-tsf)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C*pr} ${C}" transform="rotate(-90 38 38)"/></svg><div><div class="v">${pct(tsfL)}</div><div class="d">${mlab(M[S.m0])}: ${pct(tsf0)}</div></div></div><div class="d">${delta(tsfL, prev&&div(prev.ts,prev.fact), 'pp')}</div></div>
+      <div class="kpi"><div class="lb">$TS/HL · ${mlab(M[S.m1])}</div><div class="v">${money(div(last.ts,last.hl))}</div><div class="d">${delta(div(last.ts,last.hl), prev&&div(prev.ts,prev.hl))}</div></div>
+      <div class="kpi"><div class="lb">TS del período</div><div class="v">${mill(per.ts)}</div><div class="d">${ms.length} ${ms.length===1?'mes':'meses'} · ${mlab(M[S.m0])} a ${mlab(M[S.m1])}</div></div>
+      <div class="kpi"><div class="lb">% reconocido CMQ</div><div class="v">${dk? pct(div(dk.rec,dk.dec),1) : '—'}</div><div class="d">${dk? `${mlab(M[lastDec])} · no reconocido ${mill(dk.dec-dk.rec)}` : 'Sin DECLARADOS en el período'}</div></div>`;
+    draw('c-spark', {type:'line', data:{labels:ms.map(m=>mlab(M[m])), datasets:[{data:rows.map(r=>r.ts), borderColor:'#fff', borderWidth:2, pointRadius:0, tension:.4, fill:true, backgroundColor:'rgba(255,255,255,.14)'}]}, options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}, tooltip:{enabled:false}}, scales:{x:{display:false}, y:{display:false}}}}); }
 
   const labels = ms.map(m=>mlab(M[m]));
   const cats = CATS.map((c,k)=>k).filter(k=>catOk(k));
@@ -815,6 +850,10 @@ function rResumen(){
   draw('c-tsfact', {type:'line', data:{labels, datasets:[lineDS('$TS/$FACT', rows.map(r=>div(r.ts,r.fact)), '--s1', {fill:{target:'origin'}, backgroundColor:hexA(css('--s1'),.10)})]}, options: baseOpts(yP)});
   draw('c-tshl', {type:'line', data:{labels, datasets:[lineDS('$TS/HL', rows.map(r=>div(r.ts,r.hl)), '--s2', {fill:{target:'origin'}, backgroundColor:hexA(css('--s2'),.10)})]}, options: baseOpts(yH)});
   draw('c-decl-mini', declChartCfg(ms));
+  { const cb=CANS.filter(c=>c!=='OTROS' && (S.canal==='ALL'||S.canal===c)).map(c=>({c, t:tot(S.m1,{canal:c})})).filter(x=>x.t.fact>0).map(x=>({c:x.c==='MAYO'?'MAY':x.c, v:x.t.ts/x.t.fact, ts:x.t.ts})).sort((a,b)=>b.v-a.v);
+    const mx=Math.max(0.0001, ...cb.map(x=>x.v));
+    $('#cb-hint').textContent = mlab(M[S.m1])+' · gasto sobre facturación';
+    $('#cbars').innerHTML = cb.map(x=>`<div class="cbar"><div class="r"><span>${esc(x.c)} <span class="hint">· ${mill(x.ts)}</span></span><b>${pct(x.v,1)}</b></div><div class="tr"><i style="width:${x.v/mx*100}%"></i></div></div>`).join('') || '<div class="empty">Sin datos para estos filtros</div>'; }
 
   // tabla mensual
   let h = `<thead><tr><th class="l">Mes</th><th>TS $</th><th>Var. TS</th><th>HL</th><th>Facturación</th><th>$TS/HL</th><th>$TS/$FACT</th>${CATS.map((c,k)=>`<th>${CAT_LBL[k]}</th>`).join('')}<th>Declarado</th><th>Reconocido CMQ</th><th>% Rec.</th></tr></thead><tbody>`;
@@ -1266,7 +1305,20 @@ function injectSwitch(){
   const aside = document.createElement('aside'); aside.className='rv-side';
   main.parentNode.insertBefore(shell, main); shell.appendChild(aside); shell.appendChild(main);
   const tt = $('#tp-tabs'); tt.classList.add('top-only'); aside.appendChild(tabs); aside.appendChild(tt);
-  const tip = document.createElement('div'); tip.className='tip'; tip.textContent='Arriba elegís el informe. Acá, las pantallas de ese informe.'; aside.appendChild(tip);
+  const ex = document.createElement('div'); ex.className='rv-extra';
+  ex.innerHTML = `<button type="button" data-x="read"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg></span><span id="rv-x-read">Lectura del período</span></button>
+    <button type="button" data-x="sop"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg></span><span>Cómo usar el tablero</span></button>`;
+  aside.appendChild(ex);
+  ex.addEventListener('click', e=>{ const b=e.target.closest('button[data-x]'); if(!b) return; const top=document.body.classList.contains('mode-top');
+    const cerrar='<button class="btn sm x" data-close type="button">Cerrar</button>';
+    let h='';
+    if(b.dataset.x==='sop'){ const d=document.getElementById(top?'sop-top':'sop-ts'); if(!d) return;
+      h = cerrar+`<div><div class="hint">${top?'2.4.1.3 · Clientes TOP':'2.4.1.1 · Trade Spend'}</div><h2 style="font-size:22px">Cómo usar el tablero</h2></div><div class="sop-d"><ol>${d.querySelector('ol').innerHTML}</ol><p class="upd">${d.querySelector('.upd').innerHTML}</p></div>`; }
+    else { let ul=document.getElementById(top?'tp-read':'reading');
+      if(!ul.children.length){ if(top) showT('resumen'); else { const t=document.querySelector('#tabs .tab[data-v="resumen"]'); t && t.click(); } ul=document.getElementById(top?'tp-read':'reading'); }
+      const hint=(document.getElementById(top?'tp-read-h':'read-hint')||{}).textContent||'';
+      h = cerrar+`<div><div class="hint">${esc(hint)}</div><h2 style="font-size:22px">${top?'Lectura del mes':'Lectura del período'}</h2><p class="hint" style="margin:6px 0 0">Se arma sola con los filtros elegidos.</p></div><ul class="reading">${ul.innerHTML}</ul>`; }
+    const dr=$('#drawer'); $('#drawer-in').innerHTML=h; dr.hidden=false; dr.querySelector('[data-close]').focus(); });
   bar.addEventListener('click', e=>{ const b=e.target.closest('.rep'); if(b) return setMode(b.dataset.r); const u=e.target.closest('#rv-user button'); if(u){ if(u.dataset.a==='out') AUTH.logout(); else if(AUTH.api()) AUTH.ask(); else toast('El tablero todavía no está conectado al Sheet.'); } });
   AUTH.init();
   // números de las tarjetas
@@ -1282,6 +1334,7 @@ function setMode(r){
   const h1 = document.querySelector('.brand h1');
   if(tsTitle==null) tsTitle = h1.innerHTML;
   h1.innerHTML = top ? '<span class="code">2.4.1.3</span>Clientes TOP por volumen' : tsTitle;
+  const xr=document.getElementById('rv-x-read'); if(xr) xr.textContent = top ? 'Lectura del mes' : 'Lectura del período';
   if(top){ load().then(()=>showT(ST.tab)); }
   else { const sel=document.querySelector('#tabs .tab[aria-selected="true"]'); try{ history.replaceState(null,'','#'+(sel?sel.dataset.v:'resumen')); }catch(e){} window.dispatchEvent(new Event('resize')); }
 }
