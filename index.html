@@ -1537,10 +1537,11 @@ function row(un,c,m,ci,rank){
   const tope = ((T.meta.topes||{})[un]||{})[c];
   const plan = TP.of(T.M[m], un, cl[0]);
   const est = (T.estandar||{})[cl[0]];
+  const at = T.att && T.att[ci] && T.att[ci][T.M[m]]; const A=(j,v)=>at&&at[j]!=null?at[j]:(at?null:v);
   return { ci, cod:cl[0], nom:cl[1], pv:cl[3], vis:cl[4], sup:cl[5], rank,
     r3:r3i.map(i=>s[0][i]), r3t:sum(r3i.map(i=>s[0][i])), vol, mmaa, var: mmaa>0 ? vol/mmaa-1 : null,
     mixC:div(vol,tc.hl), mixT:div(vol,ta.hl), fact, ts, tsf:div(ts,fact), tsfR3:div(r3t,r3f), tsfCan:div(tc.ts,tc.fact),
-    bd: un==='CVZA' ? cl[9] : cl[10], edfU:cl[7], edfC:cl[8], som:cl[6], est: est==null?null:est,
+    bd: un==='CVZA' ? A(3,cl[9]) : A(4,cl[10]), edfU:A(1,cl[7]), edfC:A(2,cl[8]), som:A(0,cl[6]), est: est==null?null:est,
     tope, varT: tope!=null ? tope-vol : null, acc: tope!=null ? (vol>tope?'DESCONCENTRAR':'MANTENER') : null, plan };
 }
 function topRows(un,c,m,n){ return rankCan(un,c,m).slice(0,n).map((x,i)=>row(un,c,m,x.ci,i+1)); }
@@ -1551,6 +1552,7 @@ function canStats(un,c,m,n){
   return { rows, tot:tc, top:{hl:th,fact:tf,ts:tt}, conc:div(th,tc.hl), concTs:div(tt,tc.ts), tsfTop:div(tt,tf), tsfCan:div(tc.ts,tc.fact),
     tsfRest:div(tc.ts-tt, tc.fact-tf), varCan: mm ? tc.hl/mm-1 : null };
 }
+function estFmt(v){ return typeof v!=='number'?esc(v):v<=1?pct(v,0):nf(1).format(v); }
 function tsfFlag(v,ref){ if(v==null||ref==null) return '<span class="flag nd">s/d</span>'; const r=v/ref; if(r>=1.25) return `<span class="flag hi" title="${pct(r-1,0)} sobre el promedio del canal">▲ ${pct(v)}</span>`; if(r<=0.75) return `<span class="flag lo" title="Debajo del promedio del canal">▼ ${pct(v)}</span>`; return `<span class="flag mid">${pct(v)}</span>`; }
 function varFmt(r){ if(r.mmaa==null) return '—'; if(!(r.mmaa>0)) return r.vol>0?'<span class="flag new">Nuevo</span>':'—'; const c=r.var>=0?'pos':'neg'; return `<span class="${c}">${r.var>=0?'+':''}${pct(r.var,0)}</span>`; }
 function accFlag(a){ return a==null?'—':a==='DESCONCENTRAR'?'<span class="flag des">DESCONCENTRAR</span>':'<span class="flag man">MANTENER</span>'; }
@@ -1708,7 +1710,7 @@ function rCan(){
     ${r.r3.map((v,i)=>`<td${i===0?' class="gl"':''}>${hl(v)}</td>`).join('')}<td>${hl(r.r3t)}</td><td><b>${hl(r.vol)}</b></td><td>${r.mmaa==null?'—':hl(r.mmaa)}</td><td>${varFmt(r)}</td>
     <td>${pct(r.mixC)}</td><td>${pct(r.mixT,2)}</td><td>${r.rank}</td>
     <td class="gl">${money(r.fact)}</td><td>${money(r.ts)}</td><td>${tsfFlag(r.tsf,r.tsfCan)}</td><td>${pct(r.tsfR3)}</td><td>${pct(r.tsfCan)}</td>
-    <td class="gl">${nd(r.bd)}</td><td>${r.edfU||0}</td><td>${r.edfC||0}</td><td>${nd(r.est, v=>typeof v==='number'?pct(v,0):esc(v))}</td><td>${nd(r.som, v=>pct(v,0))}</td>
+    <td class="gl">${nd(r.bd)}</td><td>${r.edfU||0}</td><td>${r.edfC||0}</td><td>${nd(r.est, estFmt)}</td><td>${nd(r.som, v=>pct(v,0))}</td>
     <td class="gl">${r.tope==null?'—':hl(r.tope)}</td><td>${hl(r.vol)}</td><td class="${r.varT<0?'neg':'pos'}">${r.varT==null?'—':hl(r.varT)}</td><td>${r.plan&&r.plan.accion?accFlag(/DESC/i.test(r.plan.accion)?'DESCONCENTRAR':'MANTENER'):accFlag(r.acc)}</td>
     <td>${r.plan&&r.plan.edv?esc(r.plan.edv):'<span class="flag nd">Pendiente</span>'}</td><td class="l wr">${r.plan&&r.plan.plan?esc(r.plan.plan):''}</td></tr>`).join('');
   const t5=rows.slice(0,5), sT=k=>sum(t5.map(r=>r[k]));
@@ -1878,7 +1880,8 @@ function detail(ci){
     <div class="kpis"><div class="kpi"><div class="lb">HL ${ml(M[m])}</div><div class="v">${hl(r.vol)}</div><div class="d">Ranking #${r.rank||'—'} · ${varFmt(r)} MMAA</div></div>
     <div class="kpi"><div class="lb">R3</div><div class="v">${hl(r.r3t)}</div><div class="d">${r.r3.map(hl).join(' · ')}</div></div>
     <div class="kpi"><div class="lb">$TS / $FACT</div><div class="v">${pct(r.tsf)}</div><div class="d">Canal ${pct(r.tsfCan)}</div></div>
-    <div class="kpi"><div class="lb">SOM Thomas</div><div class="v">${r.som==null?'—':pct(r.som,0)}</div><div class="d">BD ${r.bd??'—'} SKUs · EDF ${r.edfC||0} CVZA / ${r.edfU||0} UNG</div></div></div>
+    <div class="kpi"><div class="lb">SOM Thomas</div><div class="v">${r.som==null?'—':pct(r.som,0)}</div><div class="d">BD ${r.bd??'—'} SKUs · EDF ${r.edfC||0} CVZA / ${r.edfU||0} UNG${r.est!=null?' · Estándar '+estFmt(r.est):''}</div></div></div>
+    ${(T.edf&&T.edf[ci]&&T.edf[ci].length)?`<div class="note"><b>Heladeras en el PDV (${T.edf[ci].length}):</b> ${T.edf[ci].map(e=>esc([e[1],e[2]].filter(Boolean).join(' '))+' <span class="hint">('+esc(e[0])+(e[3]?' · repago '+NF0.format(e[3])+' L':'')+')</span>').join(' · ')}</div>`:''}
     <div class="panel"><div class="ph"><h3>Volumen ${y} vs ${py}</h3></div><div class="legend"><span><i class="dot" style="background:var(--s1)"></i>${y}</span><span><i class="dot" style="background:var(--s0)"></i>${py}</span></div><div class="chart"><canvas id="td-vol"></canvas></div></div>
     <div class="panel"><div class="ph"><h3>$TS / $FACT mensual</h3></div><div class="legend"><span><i class="dot" style="background:var(--s7)"></i>Cliente</span><span><i class="dot" style="background:var(--ink-3)"></i>Promedio canal</span></div><div class="chart"><canvas id="td-tsf"></canvas></div></div>
     <div class="tw"><table><thead><tr><th class="l">Mes</th><th>HL</th><th>HL ${py}</th><th>Fact. neta</th><th>TS</th><th>TS/FACT</th></tr></thead><tbody>${ms.map(i=>`<tr><td class="l">${mL(M[i])}</td><td>${hl(s[0][i])}</td><td>${i-12>=0?hl(s[0][i-12]):'—'}</td><td>${money(s[1][i])}</td><td>${money(s[2][i])}</td><td>${pct(div(s[2][i],s[1][i]))}</td></tr>`).join('')}</tbody></table></div>`;
